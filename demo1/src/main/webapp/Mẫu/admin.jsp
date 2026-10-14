@@ -1,0 +1,1210 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>PrintKraft Admin — Vận hành hệ thống</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="brand"><span class="sq"></span> PrintKraft Admin</div>
+
+    <div class="nav-group">
+      <div class="nav-label">Tổng quan</div>
+      <div class="nav-item active" onclick="switchPage(this,'dashboard')"><span class="ic">▤</span> Bảng điều khiển</div>
+      <div class="nav-item" onclick="switchPage(this,'reports')"><span class="ic">📈</span> Báo cáo &amp; Doanh thu</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Vận hành</div>
+      <div class="nav-item" onclick="switchPage(this,'orders')"><span class="ic">📦</span> Đơn hàng</div>
+      <div class="nav-item" onclick="switchPage(this,'suppliers')"><span class="ic">🏭</span> Xưởng in đối tác</div>
+      <div class="nav-item" onclick="switchPage(this,'ncc')"><span class="ic">🏢</span> Nhà cung cấp</div>
+      <div class="nav-item" onclick="switchPage(this,'inventory')"><span class="ic">▦</span> Quản lý kho</div>
+      <div class="nav-item" onclick="switchPage(this,'contracts')"><span class="ic">§</span> Hợp đồng</div>
+      <div class="nav-item" onclick="switchPage(this,'disputes')"><span class="ic">⚠️</span> Tranh chấp <span style="margin-left:auto; background:var(--red); color:white; font-size:10px; padding:1px 6px; border-radius:999px;">4</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Truy cập</div>
+      <div class="nav-item" onclick="switchPage(this,'users')"><span class="ic">👥</span> Quản lý người dùng</div>
+      <div class="nav-item" onclick="switchPage(this,'rbac')"><span class="ic">🔐</span> Phân quyền RBAC</div>
+      <div class="nav-item" onclick="switchPage(this,'buyers')"><span class="ic">🛍️</span> Người mua</div>
+      <div class="nav-item" onclick="switchPage(this,'staff')"><span class="ic">🧑‍💼</span> Nhân sự nội bộ</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-label">Hệ thống</div>
+      <div class="nav-item" onclick="switchPage(this,'platform')"><span class="ic">◈</span> Quản lý nền tảng</div>
+      <div class="nav-item" onclick="switchPage(this,'notifications')"><span class="ic">🔔</span> Thông báo</div>
+      <div class="nav-item" onclick="switchPage(this,'settings')"><span class="ic">⚙️</span> Cấu hình</div>
+      <div class="nav-item" onclick="switchPage(this,'logs')"><span class="ic">📜</span> Nhật ký hoạt động</div>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="avatar">TH</div>
+      <div><strong>Trần Hòa</strong><span>Quản trị viên</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="pageTitle">Bảng điều khiển vận hành</h1>
+        <div class="sub" id="pageSub">Thứ Bảy, 26 tháng 9, 2026</div>
+      </div>
+      <div class="topbar-right">
+        <input class="search-box" placeholder="Tìm đơn hàng, xưởng in, khách hàng...">
+        <div class="icon-btn" onclick="toast('Bạn có 3 thông báo mới')">🔔<span class="dot"></span></div>
+        <div class="icon-btn" onclick="toast('Hộp thư đến: 5 tin nhắn chưa đọc')">✉️</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ DASHBOARD ============ -->
+      <div class="tab-content active" id="page-dashboard">
+        <div class="alert">
+          <span>⚠️</span>
+          <span><strong>3 xưởng in</strong> đang trễ tiến độ giao hàng hơn 12 giờ so với cam kết.</span>
+          <a onclick="switchPageByName('disputes')">Xem chi tiết</a>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="label">Doanh thu hôm nay</div>
+            <div class="value num">184,2 tr</div>
+            <div class="delta up">▲ 12,4% so với hôm qua</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Đơn hàng mới</div>
+            <div class="value num">342</div>
+            <div class="delta up">▲ 6,1%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Tỉ lệ đúng hạn</div>
+            <div class="value num">94,3%</div>
+            <div class="delta down">▼ 1,8% tuần này</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Tranh chấp mở</div>
+            <div class="value num">4</div>
+            <div class="delta down">▲ 2 đơn mới</div>
+          </div>
+        </div>
+
+        <div class="cols" style="margin-bottom:18px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Doanh thu 7 ngày gần đây</h3>
+              <a onclick="toast('Đã xuất báo cáo doanh thu')">Xuất báo cáo</a>
+            </div>
+            <div class="chart">
+              <div class="bar" style="height:58%;"><span class="val">118tr</span><span>T2</span></div>
+              <div class="bar" style="height:72%;"><span class="val">142tr</span><span>T3</span></div>
+              <div class="bar" style="height:65%;"><span class="val">128tr</span><span>T4</span></div>
+              <div class="bar" style="height:88%;"><span class="val">171tr</span><span>T5</span></div>
+              <div class="bar" style="height:95%;"><span class="val">184tr</span><span>T6</span></div>
+              <div class="bar" style="height:78%;"><span class="val">152tr</span><span>T7</span></div>
+              <div class="bar" style="height:90%;"><span class="val">175tr</span><span>CN</span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Phân bổ theo sản phẩm</h3>
+              <a onclick="toast('Đã mở báo cáo chi tiết')">Chi tiết</a>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Áo thun &amp; Hoodie</div><div class="meta">142 đơn · 38%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:38%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Cốc &amp; Bình giữ nhiệt</div><div class="meta">98 đơn · 26%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:26%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Poster &amp; Canvas</div><div class="meta">62 đơn · 17%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:17%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Bao bì &amp; Nhãn dán</div><div class="meta">48 đơn · 12%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:12%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Khác</div><div class="meta">30 đơn · 7%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:7%"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Đơn hàng gần đây</h3>
+              <a onclick="switchPageByName('orders')">Xem tất cả</a>
+            </div>
+            <div class="tabs">
+              <div class="tab active" onclick="pickTab(this)">Tất cả</div>
+              <div class="tab" onclick="pickTab(this)">Đang sản xuất</div>
+              <div class="tab" onclick="pickTab(this)">Trễ hạn</div>
+              <div class="tab" onclick="pickTab(this)">Khiếu nại</div>
+            </div>
+            <table>
+              <thead>
+                <tr><th>Mã đơn</th><th>Khách hàng</th><th>Xưởng in</th><th>Trạng thái</th><th>Giá trị</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="order-id">#PK-08231</td>
+                  <td>Minh Anh Store</td>
+                  <td><div class="supplier-cell"><span class="sq">SG</span> Sài Gòn Print</div></td>
+                  <td><span class="pill blue"><span class="dot"></span>Đang sản xuất</span></td>
+                  <td class="num">4.680.000đ</td>
+                </tr>
+                <tr>
+                  <td class="order-id">#PK-08230</td>
+                  <td>Local Brand Co.</td>
+                  <td><div class="supplier-cell"><span class="sq">HN</span> Hà Nội Digital</div></td>
+                  <td><span class="pill amber"><span class="dot"></span>Trễ hạn 6h</span></td>
+                  <td class="num">12.400.000đ</td>
+                </tr>
+                <tr>
+                  <td class="order-id">#PK-08229</td>
+                  <td>Nguyễn Thảo</td>
+                  <td><div class="supplier-cell"><span class="sq">DN</span> Đà Nẵng Xpress</div></td>
+                  <td><span class="pill green"><span class="dot"></span>Hoàn tất</span></td>
+                  <td class="num">890.000đ</td>
+                </tr>
+                <tr>
+                  <td class="order-id">#PK-08228</td>
+                  <td>Quà Tặng Việt</td>
+                  <td><div class="supplier-cell"><span class="sq">SG</span> Sài Gòn Print</div></td>
+                  <td><span class="pill red"><span class="dot"></span>Khiếu nại</span></td>
+                  <td class="num">6.250.000đ</td>
+                </tr>
+                <tr>
+                  <td class="order-id">#PK-08227</td>
+                  <td>The Coffee House X</td>
+                  <td><div class="supplier-cell"><span class="sq">CT</span> Cần Thơ Print</div></td>
+                  <td><span class="pill blue"><span class="dot"></span>Đang sản xuất</span></td>
+                  <td class="num">3.120.000đ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:18px;">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Xưởng in hiệu suất cao</h3>
+                <a onclick="switchPageByName('suppliers')">Tất cả</a>
+              </div>
+              <div class="list-item">
+                <div><div class="name">Sài Gòn Print</div><div class="meta">142 đơn tháng này</div></div>
+                <div><div class="bar-bg"><div class="bar-fill" style="width:92%"></div></div></div>
+              </div>
+              <div class="list-item">
+                <div><div class="name">Hà Nội Digital</div><div class="meta">98 đơn tháng này</div></div>
+                <div><div class="bar-bg"><div class="bar-fill" style="width:81%"></div></div></div>
+              </div>
+              <div class="list-item">
+                <div><div class="name">Đà Nẵng Xpress</div><div class="meta">76 đơn tháng này</div></div>
+                <div><div class="bar-bg"><div class="bar-fill" style="width:70%; background:var(--amber);"></div></div></div>
+              </div>
+              <div class="list-item">
+                <div><div class="name">Cần Thơ Print</div><div class="meta">54 đơn tháng này</div></div>
+                <div><div class="bar-bg"><div class="bar-fill" style="width:58%; background:var(--amber);"></div></div></div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Tranh chấp cần xử lý</h3>
+                <a onclick="switchPageByName('disputes')">4 tất cả</a>
+              </div>
+              <div class="dispute-item" onclick="openDisputeModal('#PK-08228','Khách báo lỗi in sai màu — chờ xưởng phản hồi','Khẩn cấp')">
+                <div class="top"><span>#PK-08228</span><span class="pill red">Khẩn cấp</span></div>
+                <div class="desc">Khách báo lỗi in sai màu — chờ xưởng phản hồi</div>
+              </div>
+              <div class="dispute-item" onclick="openDisputeModal('#PK-08201','Yêu cầu hoàn tiền một phần do giao trễ','Đang xử lý')">
+                <div class="top"><span>#PK-08201</span><span class="pill amber">Đang xử lý</span></div>
+                <div class="desc">Yêu cầu hoàn tiền một phần do giao trễ</div>
+              </div>
+              <div class="dispute-item" onclick="openDisputeModal('#PK-08196','Sản phẩm không đúng chất liệu đã đặt','Đang xử lý')">
+                <div class="top"><span>#PK-08196</span><span class="pill amber">Đang xử lý</span></div>
+                <div class="desc">Sản phẩm không đúng chất liệu đã đặt</div>
+              </div>
+              <div class="dispute-item" onclick="openDisputeModal('#PK-08188','Khách khiếu nại đóng gói kém, sản phẩm bị móp','Mới')">
+                <div class="top"><span>#PK-08188</span><span class="pill blue">Mới</span></div>
+                <div class="desc">Khách khiếu nại đóng gói kém, sản phẩm bị móp</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ REPORTS ============ -->
+      <div class="tab-content" id="page-reports">
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="label">Doanh thu tháng 9</div>
+            <div class="value num">3,84 tỷ</div>
+            <div class="delta up">▲ 18,2% so với tháng 8</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Tổng đơn hàng</div>
+            <div class="value num">6.842</div>
+            <div class="delta up">▲ 12,4%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Giá trị TB/đơn</div>
+            <div class="value num">561K</div>
+            <div class="delta up">▲ 5,1%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Tỉ lệ hoàn/hủy</div>
+            <div class="value num">2,1%</div>
+            <div class="delta up">▼ 0,4%</div>
+          </div>
+        </div>
+
+        <div class="cols" style="margin-bottom:18px;">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Doanh thu theo tháng (2026)</h3>
+              <a onclick="toast('Đã xuất báo cáo PDF')">Xuất PDF</a>
+            </div>
+            <div class="chart" style="height:190px;">
+              <div class="bar" style="height:42%;"><span class="val">1.6t</span><span>T1</span></div>
+              <div class="bar" style="height:38%;"><span class="val">1.4t</span><span>T2</span></div>
+              <div class="bar" style="height:55%;"><span class="val">2.1t</span><span>T3</span></div>
+              <div class="bar" style="height:62%;"><span class="val">2.4t</span><span>T4</span></div>
+              <div class="bar" style="height:70%;"><span class="val">2.7t</span><span>T5</span></div>
+              <div class="bar" style="height:68%;"><span class="val">2.6t</span><span>T6</span></div>
+              <div class="bar" style="height:78%;"><span class="val">3.0t</span><span>T7</span></div>
+              <div class="bar" style="height:82%;"><span class="val">3.2t</span><span>T8</span></div>
+              <div class="bar" style="height:100%;"><span class="val">3.84t</span><span>T9</span></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Top xưởng in theo doanh thu</h3>
+              <a onclick="toast('Đã mở bảng xếp hạng đầy đủ')">Chi tiết</a>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Sài Gòn Print</div><div class="meta">1,12 tỷ · 142 đơn</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Hà Nội Digital</div><div class="meta">842 tr · 98 đơn</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:75%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Đà Nẵng Xpress</div><div class="meta">618 tr · 76 đơn</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:55%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Cần Thơ Print</div><div class="meta">412 tr · 54 đơn</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:37%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Hải Phòng In Ấn</div><div class="meta">286 tr · 38 đơn</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:26%"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Chỉ số vận hành chi tiết</h3>
+            <a onclick="toast('Đã tải dữ liệu mới nhất')">Tải lại</a>
+          </div>
+          <div class="detail-grid" style="grid-template-columns:repeat(4,1fr);">
+            <div class="field"><label>Thời gian SX TB</label><strong>47,2 giờ</strong></div>
+            <div class="field"><label>Tỉ lệ đúng hạn</label><strong>94,3%</strong></div>
+            <div class="field"><label>Tỉ lệ lỗi in</label><strong>1,8%</strong></div>
+            <div class="field"><label>Điểm hài lòng</label><strong>4,9/5</strong></div>
+            <div class="field"><label>Xưởng hoạt động</label><strong>118/120</strong></div>
+            <div class="field"><label>Đơn đang xử lý</label><strong>2.148</strong></div>
+            <div class="field"><label>Khách hàng mới</label><strong>186</strong></div>
+            <div class="field"><label>Khách quay lại</label><strong>68%</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ ORDERS ============ -->
+      <div class="tab-content" id="page-orders">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Quản lý đơn hàng</h3>
+            <div style="display:flex; gap:8px;">
+              <button class="btn" onclick="toast('Đã xuất danh sách đơn hàng')">Xuất Excel</button>
+              <button class="btn primary" onclick="toast('Đã tạo đơn hàng mới')">+ Tạo đơn</button>
+            </div>
+          </div>
+          <div class="toolbar">
+            <input placeholder="Tìm mã đơn, khách hàng..." style="flex:1; min-width:180px;">
+            <select>
+              <option>Tất cả trạng thái</option>
+              <option>Đang sản xuất</option>
+              <option>Trễ hạn</option>
+              <option>Hoàn tất</option>
+              <option>Khiếu nại</option>
+            </select>
+            <select>
+              <option>Tất cả xưởng in</option>
+              <option>Sài Gòn Print</option>
+              <option>Hà Nội Digital</option>
+              <option>Đà Nẵng Xpress</option>
+            </select>
+            <select>
+              <option>Hôm nay</option>
+              <option>7 ngày qua</option>
+              <option>30 ngày qua</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Mã đơn</th><th>Khách hàng</th><th>Xưởng in</th><th>Trạng thái</th><th>Giá trị</th><th>Ngày tạo</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="order-id">#PK-08231</td>
+                <td>Minh Anh Store</td>
+                <td><div class="supplier-cell"><span class="sq">SG</span> Sài Gòn Print</div></td>
+                <td><span class="pill blue"><span class="dot"></span>Đang sản xuất</span></td>
+                <td class="num">4.680.000đ</td>
+                <td class="mono">15/09 08:12</td>
+                <td><span class="action-link" onclick="toast('Đã mở chi tiết #PK-08231')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#PK-08230</td>
+                <td>Local Brand Co.</td>
+                <td><div class="supplier-cell"><span class="sq">HN</span> Hà Nội Digital</div></td>
+                <td><span class="pill amber"><span class="dot"></span>Trễ hạn 6h</span></td>
+                <td class="num">12.400.000đ</td>
+                <td class="mono">14/09 16:40</td>
+                <td><span class="action-link" onclick="toast('Đã mở chi tiết #PK-08230')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#PK-08229</td>
+                <td>Nguyễn Thảo</td>
+                <td><div class="supplier-cell"><span class="sq">DN</span> Đà Nẵng Xpress</div></td>
+                <td><span class="pill green"><span class="dot"></span>Hoàn tất</span></td>
+                <td class="num">890.000đ</td>
+                <td class="mono">14/09 14:20</td>
+                <td><span class="action-link" onclick="toast('Đã mở chi tiết #PK-08229')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#PK-08228</td>
+                <td>Quà Tặng Việt</td>
+                <td><div class="supplier-cell"><span class="sq">SG</span> Sài Gòn Print</div></td>
+                <td><span class="pill red"><span class="dot"></span>Khiếu nại</span></td>
+                <td class="num">6.250.000đ</td>
+                <td class="mono">13/09 10:05</td>
+                <td><span class="action-link" onclick="openDisputeModal('#PK-08228','Khách báo lỗi in sai màu — chờ xưởng phản hồi','Khẩn cấp')">Xử lý</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#PK-08227</td>
+                <td>The Coffee House X</td>
+                <td><div class="supplier-cell"><span class="sq">CT</span> Cần Thơ Print</div></td>
+                <td><span class="pill blue"><span class="dot"></span>Đang sản xuất</span></td>
+                <td class="num">3.120.000đ</td>
+                <td class="mono">13/09 09:15</td>
+                <td><span class="action-link" onclick="toast('Đã mở chi tiết #PK-08227')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#PK-08226</td>
+                <td>Cần Thơ Store</td>
+                <td><div class="supplier-cell"><span class="sq">CT</span> Cần Thơ Print</div></td>
+                <td><span class="pill green"><span class="dot"></span>Hoàn tất</span></td>
+                <td class="num">1.480.000đ</td>
+                <td class="mono">12/09 15:30</td>
+                <td><span class="action-link" onclick="toast('Đã mở chi tiết #PK-08226')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td class="order-id">#PK-08225</td>
+                <td>Minh Anh Store</td>
+                <td><div class="supplier-cell"><span class="sq">SG</span> Sài Gòn Print</div></td>
+                <td><span class="pill green"><span class="dot"></span>Hoàn tất</span></td>
+                <td class="num">2.240.000đ</td>
+                <td class="mono">12/09 11:00</td>
+                <td><span class="action-link" onclick="toast('Đã mở chi tiết #PK-08225')">Chi tiết</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ SUPPLIERS ============ -->
+      <div class="tab-content" id="page-suppliers">
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="label">Tổng xưởng đối tác</div>
+            <div class="value num">120</div>
+            <div class="delta up">▲ 4 xưởng mới tháng này</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Đang hoạt động</div>
+            <div class="value num">118</div>
+            <div class="delta">2 xưởng tạm nghỉ</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Hiệu suất TB</div>
+            <div class="value num">91%</div>
+            <div class="delta up">▲ 3% tháng này</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Xưởng cần cải thiện</div>
+            <div class="value num">7</div>
+            <div class="delta down">Dưới ngưỡng 80%</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Danh sách xưởng in đối tác</h3>
+            <button class="btn primary" onclick="toast('Đã mở form thêm xưởng in')">+ Thêm xưởng</button>
+          </div>
+          <div class="toolbar">
+            <input placeholder="Tìm xưởng in..." style="flex:1; min-width:180px;">
+            <select>
+              <option>Tất cả khu vực</option>
+              <option>Miền Nam</option>
+              <option>Miền Bắc</option>
+              <option>Miền Trung</option>
+            </select>
+            <select>
+              <option>Sắp xếp: Hiệu suất</option>
+              <option>Sắp xếp: Doanh thu</option>
+              <option>Sắp xếp: Số đơn</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Xưởng in</th><th>Khu vực</th><th>Đơn tháng</th><th>Hiệu suất</th><th>Đánh giá</th><th>Trạng thái</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="supplier-cell"><span class="sq">SG</span> <strong>Sài Gòn Print</strong></div></td>
+                <td>TP.HCM</td>
+                <td class="num">142</td>
+                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:92%"></div></div></td>
+                <td class="num">4,9 ★</td>
+                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
+                <td><span class="action-link" onclick="openSupplierModal('Sài Gòn Print','TP.HCM',142,'92%','4.9')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td><div class="supplier-cell"><span class="sq">HN</span> <strong>Hà Nội Digital</strong></div></td>
+                <td>Hà Nội</td>
+                <td class="num">98</td>
+                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:81%"></div></div></td>
+                <td class="num">4,7 ★</td>
+                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
+                <td><span class="action-link" onclick="openSupplierModal('Hà Nội Digital','Hà Nội',98,'81%','4.7')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td><div class="supplier-cell"><span class="sq">DN</span> <strong>Đà Nẵng Xpress</strong></div></td>
+                <td>Đà Nẵng</td>
+                <td class="num">76</td>
+                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:70%; background:var(--amber);"></div></div></td>
+                <td class="num">4,5 ★</td>
+                <td><span class="pill amber"><span class="dot"></span>Cần cải thiện</span></td>
+                <td><span class="action-link" onclick="openSupplierModal('Đà Nẵng Xpress','Đà Nẵng',76,'70%','4.5')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td><div class="supplier-cell"><span class="sq">CT</span> <strong>Cần Thơ Print</strong></div></td>
+                <td>Cần Thơ</td>
+                <td class="num">54</td>
+                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:58%; background:var(--amber);"></div></div></td>
+                <td class="num">4,3 ★</td>
+                <td><span class="pill amber"><span class="dot"></span>Cần cải thiện</span></td>
+                <td><span class="action-link" onclick="openSupplierModal('Cần Thơ Print','Cần Thơ',54,'58%','4.3')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td><div class="supplier-cell"><span class="sq">HP</span> <strong>Hải Phòng In Ấn</strong></div></td>
+                <td>Hải Phòng</td>
+                <td class="num">38</td>
+                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:64%; background:var(--amber);"></div></div></td>
+                <td class="num">4,4 ★</td>
+                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
+                <td><span class="action-link" onclick="openSupplierModal('Hải Phòng In Ấn','Hải Phòng',38,'64%','4.4')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td><div class="supplier-cell"><span class="sq">BD</span> <strong>Bình Dương Print Pro</strong></div></td>
+                <td>Bình Dương</td>
+                <td class="num">31</td>
+                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:88%"></div></div></td>
+                <td class="num">4,8 ★</td>
+                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
+                <td><span class="action-link" onclick="openSupplierModal('Bình Dương Print Pro','Bình Dương',31,'88%','4.8')">Chi tiết</span></td>
+              </tr>
+              <tr>
+                <td><div class="supplier-cell"><span class="sq">NT</span> <strong>Nha Trang In Nhanh</strong></div></td>
+                <td>Khánh Hòa</td>
+                <td class="num">22</td>
+                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:52%; background:var(--red);"></div></div></td>
+                <td class="num">4,1 ★</td>
+                <td><span class="pill red"><span class="dot"></span>Tạm nghỉ</span></td>
+                <td><span class="action-link" onclick="openSupplierModal('Nha Trang In Nhanh','Khánh Hòa',22,'52%','4.1')">Chi tiết</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ DISPUTES ============ -->
+      <div class="tab-content" id="page-disputes">
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="label">Tranh chấp mở</div>
+            <div class="value num">4</div>
+            <div class="delta down">▲ 2 đơn mới hôm nay</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Đã giải quyết tháng này</div>
+            <div class="value num">38</div>
+            <div class="delta up">▲ 8 so với tháng 8</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Thời gian xử lý TB</div>
+            <div class="value num">6,2h</div>
+            <div class="delta up">▼ 1,4h</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Tỉ lệ khách hài lòng</div>
+            <div class="value num">87%</div>
+            <div class="delta up">▲ 3%</div>
+          </div>
+        </div>
+
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Danh sách tranh chấp</h3>
+              <a onclick="toast('Đã xuất danh sách tranh chấp')">Xuất báo cáo</a>
+            </div>
+            <div class="tabs">
+              <div class="tab active" onclick="pickTab(this)">Tất cả (4)</div>
+              <div class="tab" onclick="pickTab(this)">Khẩn cấp</div>
+              <div class="tab" onclick="pickTab(this)">Đang xử lý</div>
+              <div class="tab" onclick="pickTab(this)">Đã giải quyết</div>
+            </div>
+            <table>
+              <thead>
+                <tr><th>Mã đơn</th><th>Khách hàng</th><th>Loại</th><th>Trạng thái</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="order-id">#PK-08228</td>
+                  <td>Quà Tặng Việt</td>
+                  <td>Sai màu in</td>
+                  <td><span class="pill red"><span class="dot"></span>Khẩn cấp</span></td>
+                  <td><span class="action-link" onclick="openDisputeModal('#PK-08228','Khách báo lỗi in sai màu — chờ xưởng phản hồi','Khẩn cấp')">Xử lý</span></td>
+                </tr>
+                <tr>
+                  <td class="order-id">#PK-08201</td>
+                  <td>Local Brand Co.</td>
+                  <td>Giao trễ</td>
+                  <td><span class="pill amber"><span class="dot"></span>Đang xử lý</span></td>
+                  <td><span class="action-link" onclick="openDisputeModal('#PK-08201','Yêu cầu hoàn tiền một phần do giao trễ','Đang xử lý')">Xử lý</span></td>
+                </tr>
+                <tr>
+                  <td class="order-id">#PK-08196</td>
+                  <td>Minh Anh Store</td>
+                  <td>Sai chất liệu</td>
+                  <td><span class="pill amber"><span class="dot"></span>Đang xử lý</span></td>
+                  <td><span class="action-link" onclick="openDisputeModal('#PK-08196','Sản phẩm không đúng chất liệu đã đặt','Đang xử lý')">Xử lý</span></td>
+                </tr>
+                <tr>
+                  <td class="order-id">#PK-08188</td>
+                  <td>The Coffee House X</td>
+                  <td>Đóng gói kém</td>
+                  <td><span class="pill blue"><span class="dot"></span>Mới</span></td>
+                  <td><span class="action-link" onclick="openDisputeModal('#PK-08188','Khách khiếu nại đóng gói kém, sản phẩm bị móp','Mới')">Xử lý</span></td>
+                </tr>
+                <tr>
+                  <td class="order-id">#PK-08174</td>
+                  <td>Nguyễn Thảo</td>
+                  <td>Thiếu số lượng</td>
+                  <td><span class="pill green"><span class="dot"></span>Đã giải quyết</span></td>
+                  <td><span class="action-link" onclick="toast('Đã xem chi tiết tranh chấp đã đóng')">Xem</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Phân loại tranh chấp</h3>
+              <a onclick="toast('Đã mở báo cáo phân tích')">Chi tiết</a>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Sai màu / sai thiết kế</div><div class="meta">18 vụ · 32%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:32%; background:var(--red);"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Giao trễ</div><div class="meta">14 vụ · 25%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:25%; background:var(--amber);"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Sai chất liệu</div><div class="meta">9 vụ · 16%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:16%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Đóng gói / hư hỏng</div><div class="meta">8 vụ · 14%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:14%"></div></div></div>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Khác</div><div class="meta">7 vụ · 13%</div></div>
+              <div><div class="bar-bg"><div class="bar-fill" style="width:13%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ BUYERS ============ -->
+      <div class="tab-content" id="page-buyers">
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="label">Tổng người mua</div>
+            <div class="value num">18.420</div>
+            <div class="delta up">▲ 186 mới tháng này</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Khách hoạt động 30 ngày</div>
+            <div class="value num">6.842</div>
+            <div class="delta up">▲ 12%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Khách quay lại</div>
+            <div class="value num">68%</div>
+            <div class="delta up">▲ 4%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Giá trị TB/khách</div>
+            <div class="value num">2,4 tr</div>
+            <div class="delta up">▲ 8%</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Danh sách người mua</h3>
+            <button class="btn" onclick="toast('Đã xuất danh sách khách hàng')">Xuất Excel</button>
+          </div>
+          <div class="toolbar">
+            <input placeholder="Tìm tên, email, số điện thoại..." style="flex:1; min-width:200px;">
+            <select>
+              <option>Tất cả phân loại</option>
+              <option>Khách VIP</option>
+              <option>Khách doanh nghiệp</option>
+              <option>Khách lẻ</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Khách hàng</th><th>Loại</th><th>Đơn hàng</th><th>Tổng chi tiêu</th><th>Đăng ký</th><th>Trạng thái</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Minh Anh Store</strong><div style="font-size:11.5px; color:var(--muted);">minhanh@store.vn</div></td>
+                <td><span class="pill blue">Doanh nghiệp</span></td>
+                <td class="num">42</td>
+                <td class="num">86.400.000đ</td>
+                <td class="mono">12/03/2025</td>
+                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
+              </tr>
+              <tr>
+                <td><strong>Local Brand Co.</strong><div style="font-size:11.5px; color:var(--muted);">hello@localbrand.vn</div></td>
+                <td><span class="pill blue">Doanh nghiệp</span></td>
+                <td class="num">38</td>
+                <td class="num">124.800.000đ</td>
+                <td class="mono">05/01/2025</td>
+                <td><span class="pill green"><span class="dot"></span>VIP</span></td>
+              </tr>
+              <tr>
+                <td><strong>Quà Tặng Việt</strong><div style="font-size:11.5px; color:var(--muted);">sales@quatangviet.vn</div></td>
+                <td><span class="pill blue">Doanh nghiệp</span></td>
+                <td class="num">28</td>
+                <td class="num">68.250.000đ</td>
+                <td class="mono">18/07/2025</td>
+                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
+              </tr>
+              <tr>
+                <td><strong>Nguyễn Thảo</strong><div style="font-size:11.5px; color:var(--muted);">thaonguyen@gmail.com</div></td>
+                <td><span class="pill gray">Khách lẻ</span></td>
+                <td class="num">12</td>
+                <td class="num">8.900.000đ</td>
+                <td class="mono">22/11/2025</td>
+                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
+              </tr>
+              <tr>
+                <td><strong>The Coffee House X</strong><div style="font-size:11.5px; color:var(--muted);">ops@coffeex.vn</div></td>
+                <td><span class="pill blue">Doanh nghiệp</span></td>
+                <td class="num">19</td>
+                <td class="num">52.120.000đ</td>
+                <td class="mono">03/06/2025</td>
+                <td><span class="pill green"><span class="dot"></span>VIP</span></td>
+              </tr>
+              <tr>
+                <td><strong>Cần Thơ Store</strong><div style="font-size:11.5px; color:var(--muted);">ctstore@email.vn</div></td>
+                <td><span class="pill gray">Khách lẻ</span></td>
+                <td class="num">7</td>
+                <td class="num">4.480.000đ</td>
+                <td class="mono">14/08/2026</td>
+                <td><span class="pill amber"><span class="dot"></span>Ít hoạt động</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ============ STAFF ============ -->
+      <div class="tab-content" id="page-staff">
+        <div class="section-grid">
+          <div class="metric-card"><div><div class="metric-title">Nhân sự đang làm</div><div class="metric-value num" id="staffActiveCount">0</div><div class="metric-note">Tài khoản nội bộ đang hoạt động</div></div><div class="metric-icon">👥</div></div>
+          <div class="metric-card"><div><div class="metric-title">Đang tạm nghỉ</div><div class="metric-value num" id="staffLeaveCount">0</div><div class="metric-note">Quyền truy cập đang tạm khóa</div></div><div class="metric-icon amber">⏱</div></div>
+          <div class="metric-card"><div><div class="metric-title">Bộ phận</div><div class="metric-value num" id="staffDepartmentCount">0</div><div class="metric-note">Đơn vị có nhân sự hoạt động</div></div><div class="metric-icon green">▦</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div><h3>Danh sách nhân sự nội bộ</h3><div class="panel-subtitle">Quản lý hồ sơ công việc và tài khoản truy cập hệ thống</div></div>
+            <div class="inline-actions"><button class="btn" type="button" onclick="exportStaff()">Xuất CSV</button><button class="btn primary" type="button" onclick="openStaffForm()">+ Thêm nhân sự</button></div>
+          </div>
+          <div class="toolbar">
+            <input id="staffSearch" placeholder="Tìm tên, mã nhân viên, email" oninput="renderStaff()">
+            <select id="staffDepartmentFilter" onchange="renderStaff()"><option value="">Tất cả bộ phận</option></select>
+            <select id="staffStatusFilter" onchange="renderStaff()"><option value="">Tất cả trạng thái</option><option>Đang làm</option><option>Tạm nghỉ</option><option>Đã nghỉ việc</option></select>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nhân sự</th><th>Chức danh</th><th>Bộ phận</th><th>Liên hệ</th><th>Ngày vào làm</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+              <tbody id="staffTableBody"></tbody>
+            </table>
+          </div>
+          <div class="table-footer"><span id="staffResultCount">0 nhân sự</span><span>Đồng bộ với tài khoản người dùng nội bộ</span></div>
+        </div>
+      </div>
+
+      <!-- ============ SETTINGS ============ -->
+      <div class="tab-content" id="page-settings">
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head"><h3>Cấu hình hệ thống</h3></div>
+            <div class="detail-grid">
+              <div class="field"><label>Phiên bản</label><strong>v2.8.4</strong></div>
+              <div class="field"><label>Môi trường</label><strong>Production</strong></div>
+              <div class="field"><label>Múi giờ</label><strong>GMT+7 (Việt Nam)</strong></div>
+              <div class="field"><label>Tiền tệ</label><strong>VND (₫)</strong></div>
+            </div>
+            <div style="padding:0 20px 20px;">
+              <div class="list-item" style="padding-left:0; padding-right:0;">
+                <div><div class="name">Thông báo email đơn hàng mới</div><div class="meta">Gửi email cho quản trị viên khi có đơn mới</div></div>
+                <span class="pill green"><span class="dot"></span>Bật</span>
+              </div>
+              <div class="list-item" style="padding-left:0; padding-right:0;">
+                <div><div class="name">Tự động ghép xưởng in</div><div class="meta">Hệ thống tự chọn xưởng tối ưu theo giá và thời gian</div></div>
+                <span class="pill green"><span class="dot"></span>Bật</span>
+              </div>
+              <div class="list-item" style="padding-left:0; padding-right:0;">
+                <div><div class="name">Duyệt thủ công đơn &gt; 50 triệu</div><div class="meta">Yêu cầu quản trị viên duyệt trước khi sản xuất</div></div>
+                <span class="pill green"><span class="dot"></span>Bật</span>
+              </div>
+              <div class="list-item" style="padding-left:0; padding-right:0;">
+                <div><div class="name">Chế độ bảo trì</div><div class="meta">Tạm dừng nhận đơn mới để bảo trì hệ thống</div></div>
+                <span class="pill gray"><span class="dot"></span>Tắt</span>
+              </div>
+            </div>
+            <div style="padding:0 20px 20px; display:flex; gap:10px;">
+              <button class="btn primary" onclick="toast('Đã lưu cấu hình hệ thống')">Lưu thay đổi</button>
+              <button class="btn" onclick="toast('Đã khôi phục cấu hình mặc định')">Khôi phục mặc định</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h3>Phân quyền vai trò</h3></div>
+            <div class="list-item">
+              <div><div class="name">Quản trị viên</div><div class="meta">Toàn quyền hệ thống</div></div>
+              <span class="pill blue">2 người</span>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Quản lý vận hành</div><div class="meta">Quản lý đơn hàng, xưởng in, tranh chấp</div></div>
+              <span class="pill blue">6 người</span>
+            </div>
+            <div class="list-item">
+              <div><div class="name">CSKH</div><div class="meta">Xử lý khiếu nại, hỗ trợ khách hàng</div></div>
+              <span class="pill blue">12 người</span>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Kế toán</div><div class="meta">Xem báo cáo doanh thu, hóa đơn</div></div>
+              <span class="pill blue">4 người</span>
+            </div>
+            <div class="list-item">
+              <div><div class="name">Giám sát xưởng</div><div class="meta">Theo dõi tiến độ xưởng đối tác</div></div>
+              <span class="pill blue">8 người</span>
+            </div>
+            <div style="padding:14px 20px;">
+              <button class="btn" onclick="toast('Đã mở trang phân quyền chi tiết')">Quản lý phân quyền</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ USERS ============ -->
+      <div class="tab-content" id="page-users">
+        <div class="section-grid">
+          <div class="metric-card"><div><div class="metric-title">Tài khoản hoạt động</div><div class="metric-value num" id="userActiveCount">0</div><div class="metric-note">Có thể đăng nhập hệ thống</div></div><div class="metric-icon">👥</div></div>
+          <div class="metric-card"><div><div class="metric-title">Đang chờ duyệt</div><div class="metric-value num" id="userPendingCount">0</div><div class="metric-note">Cần xác minh thông tin</div></div><div class="metric-icon amber">⏱</div></div>
+          <div class="metric-card"><div><div class="metric-title">Tài khoản bị khóa</div><div class="metric-value num" id="userLockedCount">0</div><div class="metric-note">Không thể đăng nhập</div></div><div class="metric-icon red">!</div></div>
+        </div>
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head">
+              <div><h3>Danh sách tài khoản thành viên</h3><div class="panel-subtitle">Quản lý hồ sơ, trạng thái và vai trò truy cập</div></div>
+              <div class="inline-actions"><button class="btn" type="button" onclick="exportUsers()">Xuất CSV</button><button class="btn primary" type="button" onclick="openUserForm()">+ Thêm người dùng</button></div>
+            </div>
+            <div class="toolbar">
+              <input id="userSearch" placeholder="Tìm theo tên, email, SĐT" oninput="renderUsers()">
+              <select id="userRoleFilter" onchange="renderUsers()"><option value="">Tất cả vai trò</option></select>
+              <select id="userStatusFilter" onchange="renderUsers()"><option value="">Tất cả trạng thái</option><option>Hoạt động</option><option>Chờ duyệt</option><option>Bị khóa</option></select>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>Người dùng</th><th>Loại / Bộ phận</th><th>Vai trò</th><th>Đăng nhập cuối</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="usersTableBody"></tbody></table></div>
+            <div class="table-footer"><span id="userResultCount">0 tài khoản</span><span>Dữ liệu được lưu trên trình duyệt</span></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Theo dõi tài khoản</h3><button class="btn" type="button" onclick="openAccessReview()">Rà soát</button></div>
+            <div class="status-stack" id="userMonitoring"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ RBAC ============ -->
+      <div class="tab-content" id="page-rbac">
+        <div class="section-grid">
+          <div class="metric-card"><div><div class="metric-title">Vai trò đang dùng</div><div class="metric-value num" id="roleCount">0</div><div class="metric-note">Vai trò hệ thống và tùy chỉnh</div></div><div class="metric-icon">🔐</div></div>
+          <div class="metric-card"><div><div class="metric-title">Quyền đang cấp</div><div class="metric-value num" id="permissionCount">0</div><div class="metric-note">Trên toàn bộ vai trò</div></div><div class="metric-icon green">✓</div></div>
+          <div class="metric-card"><div><div class="metric-title">Yêu cầu cấp quyền</div><div class="metric-value num" id="accessRequestCount">0</div><div class="metric-note">Đang chờ phê duyệt</div></div><div class="metric-icon amber">⏱</div></div>
+        </div>
+        <div class="panel page-panel">
+          <div class="panel-head">
+            <div><h3>Ma trận phân quyền nội bộ</h3><div class="panel-subtitle">Bật hoặc tắt quyền theo từng vai trò công việc</div></div>
+            <div class="inline-actions"><button class="btn" type="button" onclick="openRoleForm()">+ Vai trò</button><button class="btn" type="button" onclick="openRoleAssignment()">Gán vai trò</button><button class="btn primary" type="button" onclick="savePermissions()">Lưu phân quyền</button></div>
+          </div>
+          <div class="table-wrap"><table class="role-matrix" id="permissionMatrix"></table></div>
+        </div>
+        <div class="cols top-gap">
+          <div class="panel"><div class="panel-head"><h3>Vai trò & phạm vi</h3></div><div id="roleList"></div></div>
+          <div class="panel"><div class="panel-head"><h3>Yêu cầu cấp quyền</h3><span class="pill amber" id="pendingRequestPill">0 chờ duyệt</span></div><div id="accessRequestList"></div></div>
+        </div>
+      </div>
+
+      <!-- ============ NCC ============ -->
+      <div class="tab-content" id="page-ncc">
+        <div class="section-grid">
+          <div class="metric-card"><div><div class="metric-title">Nhà cung cấp</div><div class="metric-value num" id="supplierCount">0</div><div class="metric-note">Tổng hồ sơ đang quản lý</div></div><div class="metric-icon">🏢</div></div>
+          <div class="metric-card"><div><div class="metric-title">Hồ sơ chờ duyệt</div><div class="metric-value num" id="supplierPendingCount">0</div><div class="metric-note">Cần xác minh pháp lý</div></div><div class="metric-icon amber">⏱</div></div>
+          <div class="metric-card"><div><div class="metric-title">Quyền bị tạm dừng</div><div class="metric-value num" id="supplierSuspendedCount">0</div><div class="metric-note">Cần đánh giá lại SLA</div></div><div class="metric-icon red">!</div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div><h3>Nhà cung cấp và quyền truy cập</h3><div class="panel-subtitle">Quản lý hồ sơ pháp lý, hợp đồng và phạm vi vận hành</div></div>
+            <div class="inline-actions"><button class="btn" type="button" onclick="exportSuppliers()">Xuất CSV</button><button class="btn primary" type="button" onclick="openSupplierAccessForm()">+ Thêm NCC</button></div>
+          </div>
+          <div class="toolbar">
+            <input id="supplierSearch" placeholder="Tên NCC, mã số thuế, khu vực" oninput="renderSuppliers()">
+            <select id="supplierRegionFilter" onchange="renderSuppliers()"><option value="">Tất cả khu vực</option><option>Miền Bắc</option><option>Miền Trung</option><option>Miền Nam</option></select>
+            <select id="supplierStatusFilter" onchange="renderSuppliers()"><option value="">Tất cả trạng thái</option><option>Hoạt động</option><option>Chờ duyệt</option><option>Tạm dừng</option></select>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>NCC</th><th>Khu vực</th><th>Quyền hiện tại</th><th>SLA</th><th>Hợp đồng</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="suppliersTableBody"></tbody></table></div>
+          <div class="table-footer"><span id="supplierResultCount">0 nhà cung cấp</span><span>Quyền thay đổi có hiệu lực ngay</span></div>
+        </div>
+      </div>
+
+      <!-- ============ INVENTORY ============ -->
+      <div class="tab-content" id="page-inventory">
+        <div class="section-grid">
+          <div class="metric-card"><div><div class="metric-title">SKU đang quản lý</div><div class="metric-value num" id="inventorySkuCount">0</div><div class="metric-note">Tất cả kho và nhóm vật tư</div></div><div class="metric-icon">▦</div></div>
+          <div class="metric-card"><div><div class="metric-title">Cảnh báo tồn thấp</div><div class="metric-value num" id="inventoryLowCount">0</div><div class="metric-note">Tồn khả dụng dưới ngưỡng</div></div><div class="metric-icon amber">!</div></div>
+          <div class="metric-card"><div><div class="metric-title">Tổng tồn khả dụng</div><div class="metric-value num" id="inventoryAvailableCount">0</div><div class="metric-note">Đã trừ số lượng đang giữ</div></div><div class="metric-icon green">∑</div></div>
+        </div>
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head">
+              <div><h3>Danh mục và xuất nhập tồn</h3><div class="panel-subtitle">Số lượng được cập nhật theo từng phiếu kho</div></div>
+              <div class="inline-actions"><button class="btn" type="button" onclick="openInventoryItemForm()">+ Vật tư</button><button class="btn" type="button" onclick="openStockMovement('out')">Xuất kho</button><button class="btn primary" type="button" onclick="openStockMovement('in')">+ Nhập kho</button></div>
+            </div>
+            <div class="toolbar">
+              <input id="inventorySearch" placeholder="Mã hoặc tên vật tư" oninput="renderInventory()">
+              <select id="inventoryWarehouseFilter" onchange="renderInventory()"><option value="">Tất cả kho</option><option>Kho A</option><option>Kho B</option><option>Kho C</option></select>
+              <select id="inventoryStateFilter" onchange="renderInventory()"><option value="">Tất cả mức tồn</option><option>Đủ hàng</option><option>Sắp thiếu</option><option>Cần nhập</option></select>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>Mã vật tư</th><th>Tên hàng</th><th>Tồn</th><th>Đã giữ</th><th>Khả dụng</th><th>Kho</th><th>Trạng thái</th><th></th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div>
+          </div>
+          <div class="panel"><div class="panel-head"><h3>Giao dịch kho gần đây</h3><button class="btn" type="button" onclick="openStockMovement('audit')">Kiểm kê</button></div><div id="movementList"></div></div>
+        </div>
+      </div>
+
+      <!-- ============ CONTRACTS ============ -->
+      <div class="tab-content" id="page-contracts">
+        <div class="section-grid">
+          <div class="metric-card"><div><div class="metric-title">Hợp đồng hiệu lực</div><div class="metric-value num" id="contractActiveCount">0</div><div class="metric-note">Đang trong thời gian áp dụng</div></div><div class="metric-icon">§</div></div>
+          <div class="metric-card"><div><div class="metric-title">Sắp hết hạn</div><div class="metric-value num" id="contractExpiringCount">0</div><div class="metric-note">Cần gia hạn hoặc thanh lý</div></div><div class="metric-icon amber">⏱</div></div>
+          <div class="metric-card"><div><div class="metric-title">Chờ ký số</div><div class="metric-value num" id="contractSigningCount">0</div><div class="metric-note">Đang chờ một hoặc nhiều bên ký</div></div><div class="metric-icon red">!</div></div>
+        </div>
+        <div class="cols">
+          <div class="panel">
+            <div class="panel-head">
+              <div><h3>Kho hợp đồng</h3><div class="panel-subtitle">Theo dõi vòng đời và hồ sơ pháp lý</div></div>
+              <div class="inline-actions"><button class="btn" type="button" onclick="exportContracts()">Xuất CSV</button><button class="btn primary" type="button" onclick="openContractForm()">+ Hợp đồng</button></div>
+            </div>
+            <div class="toolbar"><input id="contractSearch" placeholder="Mã hợp đồng hoặc đối tác" oninput="renderContracts()"><select id="contractStatusFilter" onchange="renderContracts()"><option value="">Tất cả trạng thái</option><option>Hiệu lực</option><option>Sắp hết hạn</option><option>Chờ ký</option><option>Hết hiệu lực</option></select></div>
+            <div class="table-wrap"><table><thead><tr><th>Mã HĐ</th><th>Đối tác</th><th>Loại</th><th>Giá trị</th><th>Hiệu lực</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="contractsTableBody"></tbody></table></div>
+          </div>
+          <div class="panel"><div class="panel-head"><h3>Luồng xử lý gần đây</h3><span class="pill blue">Theo thời gian</span></div><div class="contract-timeline" id="contractTimeline"></div></div>
+        </div>
+      </div>
+
+      <!-- ============ PLATFORM ============ -->
+      <div class="tab-content" id="page-platform">
+        <div class="section-grid">
+          <div class="metric-card"><div><div class="metric-title">Dịch vụ ổn định</div><div class="metric-value num" id="healthyServiceCount">0/0</div><div class="metric-note">Cập nhật theo lần kiểm tra gần nhất</div></div><div class="metric-icon green">✓</div></div>
+          <div class="metric-card"><div><div class="metric-title">Tác vụ đang chạy</div><div class="metric-value num" id="runningJobCount">0</div><div class="metric-note">Đồng bộ, gửi tin và sao lưu</div></div><div class="metric-icon">◈</div></div>
+          <div class="metric-card"><div><div class="metric-title">Sự cố chưa xử lý</div><div class="metric-value num" id="openIncidentCount">0</div><div class="metric-note">Cần theo dõi hoặc xác nhận</div></div><div class="metric-icon amber">!</div></div>
+        </div>
+        <div class="cols">
+          <div>
+            <div class="panel"><div class="panel-head"><div><h3>Giám sát dịch vụ</h3><div class="panel-subtitle" id="platformLastCheck">Chưa kiểm tra</div></div><button class="btn" type="button" onclick="refreshServices()">Làm mới</button></div><div class="status-stack" id="serviceList"></div></div>
+            <div class="panel top-gap"><div class="panel-head"><h3>Sự cố và tác vụ vận hành</h3><button class="btn" type="button" onclick="runBackup()">Chạy backup</button></div><div id="incidentList"></div></div>
+          </div>
+          <form class="panel" id="platformConfigForm" onsubmit="savePlatformConfig(event)">
+            <div class="panel-head"><div><h3>Cấu hình vận hành</h3><div class="panel-subtitle">Thiết lập áp dụng cho toàn hệ thống</div></div><span class="pill blue">Admin</span></div>
+            <div class="settings-list">
+              <label class="setting-row"><span><strong>Bảo trì theo lịch</strong><small>Tự động chuyển sang chế độ hạn chế</small></span><input type="checkbox" id="configScheduledMaintenance"></label>
+              <label class="setting-row"><span><strong>Tự động backup</strong><small>Lưu tối đa 30 bản gần nhất</small></span><input type="checkbox" id="configAutoBackup"></label>
+              <label class="setting-row"><span><strong>Tự động mở rộng</strong><small>Tăng tài nguyên khi tải vượt 80%</small></span><input type="checkbox" id="configAutoScale"></label>
+              <label class="setting-row"><span><strong>Chế độ bảo trì</strong><small>Dừng nhận đơn mới khi bật</small></span><input type="checkbox" id="configMaintenanceMode"></label>
+              <div class="form-field"><label>Giới hạn upload (MB)</label><input type="number" id="configUploadLimit" min="10" max="2048" required></div>
+              <div class="form-field"><label>Khoảng cách backup (giờ)</label><input type="number" id="configBackupInterval" min="1" max="24" required></div>
+            </div>
+            <div class="panel-actions"><button class="btn" type="button" onclick="resetPlatformConfig()">Khôi phục</button><button class="btn primary" type="submit">Lưu cấu hình</button></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ============ NOTIFICATIONS ============ -->
+      <div class="tab-content" id="page-notifications">
+        <div class="section-grid">
+          <div class="metric-card"><div><div class="metric-title">Đã gửi</div><div class="metric-value num" id="sentNotificationCount">0</div><div class="metric-note">Trong lịch sử hiện tại</div></div><div class="metric-icon">🔔</div></div>
+          <div class="metric-card"><div><div class="metric-title">Đã lên lịch</div><div class="metric-value num" id="scheduledNotificationCount">0</div><div class="metric-note">Sẽ gửi đúng thời điểm đã chọn</div></div><div class="metric-icon green">✓</div></div>
+          <div class="metric-card"><div><div class="metric-title">Bản nháp</div><div class="metric-value num" id="draftNotificationCount">0</div><div class="metric-note">Chưa gửi đến người dùng</div></div><div class="metric-icon amber">✎</div></div>
+        </div>
+        <div class="cols">
+          <form class="panel" id="notificationForm" onsubmit="submitNotification(event)">
+            <div class="panel-head"><div><h3>Soạn thông báo</h3><div class="panel-subtitle">Gửi ngay, lên lịch hoặc lưu nháp</div></div><span class="pill blue">Đa kênh</span></div>
+            <div class="form-grid">
+              <div class="form-field"><label>Đối tượng nhận</label><select id="notificationAudience" required><option>Tất cả người dùng</option><option>Nhân sự nội bộ</option><option>Nhà cung cấp</option><option>Khách hàng doanh nghiệp</option></select></div>
+              <div class="form-field"><label>Kênh gửi</label><select id="notificationChannel" required><option>In-app + Email</option><option>Chỉ in-app</option><option>Email</option><option>SMS</option></select></div>
+              <div class="form-field"><label>Tiêu đề</label><input id="notificationTitle" maxlength="100" required placeholder="VD: Lịch bảo trì hệ thống"></div>
+              <div class="form-field"><label>Mức độ</label><select id="notificationLevel"><option>Thông tin</option><option>Cảnh báo</option><option>Khẩn cấp</option></select></div>
+              <div class="form-field"><label>Thời điểm gửi</label><select id="notificationTiming" onchange="toggleScheduleField()"><option value="now">Gửi ngay</option><option value="schedule">Lên lịch</option></select></div>
+              <div class="form-field" id="notificationScheduleField" hidden><label>Ngày giờ gửi</label><input type="datetime-local" id="notificationScheduleAt"></div>
+              <div class="form-field full-span"><label>Nội dung</label><textarea id="notificationMessage" maxlength="1000" required placeholder="Nhập nội dung gửi đến người dùng..."></textarea><small class="field-help"><span id="notificationCharCount">0</span>/1000 ký tự</small></div>
+            </div>
+            <div class="panel-actions"><button class="btn" type="button" onclick="saveNotificationDraft()">Lưu nháp</button><button class="btn primary" type="submit">Gửi thông báo</button></div>
+          </form>
+          <div class="panel">
+            <div class="panel-head"><div><h3>Lịch sử thông báo</h3><div class="panel-subtitle">Theo dõi trạng thái gửi và gửi lại</div></div></div>
+            <div class="toolbar"><input id="notificationSearch" placeholder="Tìm tiêu đề" oninput="renderNotifications()"><select id="notificationStatusFilter" onchange="renderNotifications()"><option value="">Tất cả trạng thái</option><option>Đã gửi</option><option>Đã lên lịch</option><option>Bản nháp</option></select></div>
+            <div id="notificationList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ LOGS ============ -->
+      <div class="tab-content" id="page-logs">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Nhật ký hoạt động</h3>
+            <div style="display:flex; gap:8px;">
+              <select style="border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:13px;">
+                <option>Tất cả hành động</option>
+                <option>Đơn hàng</option>
+                <option>Xưởng in</option>
+                <option>Người dùng</option>
+                <option>Hệ thống</option>
+              </select>
+              <button class="btn" onclick="toast('Đã xuất nhật ký')">Xuất log</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Thời gian</th><th>Người thực hiện</th><th>Hành động</th><th>Đối tượng</th><th>Chi tiết</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">15/09 10:42</td>
+                <td>Trần Hòa</td>
+                <td><span class="pill blue">Cập nhật</span></td>
+                <td>#PK-08231</td>
+                <td>Chuyển trạng thái sang "Đang sản xuất"</td>
+              </tr>
+              <tr>
+                <td class="mono">15/09 10:30</td>
+                <td>Hệ thống</td>
+                <td><span class="pill green">Tự động</span></td>
+                <td>#PK-08235</td>
+                <td>Ghép xưởng in Sài Gòn Print</td>
+              </tr>
+              <tr>
+                <td class="mono">15/09 10:12</td>
+                <td>Nguyễn Linh</td>
+                <td><span class="pill amber">Cảnh báo</span></td>
+                <td>#PK-08230</td>
+                <td>Đánh dấu trễ hạn — gửi thông báo cho xưởng</td>
+              </tr>
+              <tr>
+                <td class="mono">15/09 09:55</td>
+                <td>Phạm Minh</td>
+                <td><span class="pill red">Tranh chấp</span></td>
+                <td>#PK-08228</td>
+                <td>Tạo tranh chấp mới — loại "Sai màu in"</td>
+              </tr>
+              <tr>
+                <td class="mono">15/09 09:40</td>
+                <td>Trần Hòa</td>
+                <td><span class="pill blue">Cập nhật</span></td>
+                <td>Hà Nội Digital</td>
+                <td>Điều chỉnh hiệu suất từ 78% lên 81%</td>
+              </tr>
+              <tr>
+                <td class="mono">15/09 09:20</td>
+                <td>Hệ thống</td>
+                <td><span class="pill green">Tự động</span></td>
+                <td>#PK-08240</td>
+                <td>Nhận đơn mới từ The Coffee House X</td>
+              </tr>
+              <tr>
+                <td class="mono">15/09 08:45</td>
+                <td>Lê Trang</td>
+                <td><span class="pill blue">Tài chính</span></td>
+                <td>#PK-08225</td>
+                <td>Xác nhận thanh toán 2.240.000đ</td>
+              </tr>
+              <tr>
+                <td class="mono">15/09 08:15</td>
+                <td>Hệ thống</td>
+                <td><span class="pill green">Tự động</span></td>
+                <td>#PK-08231</td>
+                <td>Gửi file thiết kế đến xưởng Sài Gòn Print</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== DISPUTE MODAL ===== -->
+<div class="overlay" id="overlay" onclick="closeAll()"></div>
+<div class="modal" id="disputeModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeAll()">✕</button>
+    <h3 id="dmId">#PK-08228</h3>
+    <div class="sub" id="dmDesc">Khách báo lỗi in sai màu — chờ xưởng phản hồi</div>
+
+    <div class="detail-grid">
+      <div class="field"><label>Khách hàng</label><strong>Quà Tặng Việt</strong></div>
+      <div class="field"><label>Xưởng in</label><strong>Sài Gòn Print</strong></div>
+      <div class="field"><label>Giá trị đơn</label><strong class="num">6.250.000đ</strong></div>
+      <div class="field"><label>Trạng thái</label><strong id="dmStatus">Khẩn cấp</strong></div>
+    </div>
+
+    <h3 style="font-size:15px; margin-bottom:12px;">Lịch sử xử lý</h3>
+    <div class="detail-grid" style="grid-template-columns:1fr;">
+      <div class="field"><label>15/09 09:55 · Phạm Minh</label><strong style="font-size:13px;">Tạo tranh chấp — gửi ảnh sản phẩm lỗi</strong></div>
+      <div class="field"><label>15/09 10:05 · Hệ thống</label><strong style="font-size:13px;">Thông báo xưởng Sài Gòn Print</strong></div>
+      <div class="field"><label>Chờ xử lý</label><strong style="font-size:13px;">Đang đợi xưởng phản hồi trong 2 giờ</strong></div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button class="btn primary" style="flex:1;" onclick="toast('Đã gửi phản hồi cho khách hàng')">Phản hồi khách</button>
+      <button class="btn danger" style="flex:1;" onclick="toast('Đã quyết định hoàn tiền cho khách')">Hoàn tiền</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SUPPLIER MODAL ===== -->
+<div class="modal" id="supplierModal">
+  <div class="modal-box" style="width:520px;">
+    <button class="modal-close" onclick="closeAll()">✕</button>
+    <h3 id="smName">Sài Gòn Print</h3>
+    <div class="sub" id="smRegion">TP.HCM · Đối tác từ 2024</div>
+
+    <div class="detail-grid">
+      <div class="field"><label>Đơn tháng này</label><strong id="smOrders" class="num">142</strong></div>
+      <div class="field"><label>Hiệu suất</label><strong id="smPerf">92%</strong></div>
+      <div class="field"><label>Đánh giá</label><strong id="smRating">4.9 ★</strong></div>
+      <div class="field"><label>Tỉ lệ đúng hạn</label><strong>96%</strong></div>
+    </div>
+
+    <h3 style="font-size:15px; margin-bottom:12px;">Chỉ số chi tiết</h3>
+    <div class="list-item" style="padding-left:0; padding-right:0;">
+      <div><div class="name">Thời gian sản xuất TB</div><div class="meta">42 giờ · Nhanh hơn 12% mức chuẩn</div></div>
+    </div>
+    <div class="list-item" style="padding-left:0; padding-right:0;">
+      <div><div class="name">Tỉ lệ lỗi in</div><div class="meta">1,2% · Thấp hơn mức cho phép</div></div>
+    </div>
+    <div class="list-item" style="padding-left:0; padding-right:0;">
+      <div><div class="name">Tỉ lệ hủy đơn</div><div class="meta">0,4% · Rất thấp</div></div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button class="btn" style="flex:1;" onclick="toast('Đã gửi tin nhắn cho xưởng')">Nhắn tin</button>
+      <button class="btn primary" style="flex:1;" onclick="toast('Đã mở trang quản lý xưởng')">Quản lý</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ENTITY FORM MODAL ===== -->
+<div class="modal" id="entityModal" aria-hidden="true">
+  <div class="modal-box" id="entityModalBox">
+    <button class="modal-close" type="button" onclick="closeAll()">✕</button>
+    <h3 id="entityModalTitle">Cập nhật dữ liệu</h3>
+    <div class="sub" id="entityModalSubtitle"></div>
+    <form id="entityForm">
+      <div class="form-grid modal-form-grid" id="entityFormFields"></div>
+      <div class="modal-actions">
+        <button class="btn" type="button" onclick="closeAll()">Hủy</button>
+        <button class="btn primary" type="submit" id="entitySubmitButton">Lưu thay đổi</button>
+      </div>
+    </form>
+    <div id="entityInfoContent" hidden></div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM MODAL ===== -->
+<div class="modal" id="confirmModal" aria-hidden="true">
+  <div class="modal-box confirm-box">
+    <button class="modal-close" type="button" onclick="closeAll()">✕</button>
+    <div class="confirm-icon">!</div>
+    <h3 id="confirmTitle">Xác nhận thao tác</h3>
+    <div class="sub" id="confirmMessage"></div>
+    <div class="modal-actions">
+      <button class="btn" type="button" onclick="closeAll()">Hủy</button>
+      <button class="btn danger" type="button" id="confirmButton">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Đã thực hiện</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
