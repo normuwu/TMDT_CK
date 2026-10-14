@@ -4,18 +4,11 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
 
-  <!-- TRANG CHU: /demo1/ -> index.jsp redirect sang KhachHang/trang_chu.jsp -->
-  <jsp-config>
-    <!-- Toan bo ${...} trong *.jsp la JS template literal (front-end demo),
-         khong phai EL. Tat EL de tranh loi 500 khi Jasper thu evaluate JS. -->
-    <jsp-property-group>
-      <url-pattern>*.jsp</url-pattern>
-      <el-ignored>true</el-ignored>
-    </jsp-property-group>
-  </jsp-config>
+    <session-config>
+        <session-timeout>30</session-timeout>
+        <cookie-config>
+            <http-only>true</http-only>
+        </cookie-config>
+    </session-config>
 
-  <welcome-file-list>
-    <welcome-file>index.jsp</welcome-file>
-  </welcome-file-list>
-
-</web-app>
+</web-app>
