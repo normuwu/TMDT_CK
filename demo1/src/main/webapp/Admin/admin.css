@@ -396,3 +396,46 @@
     .full-span{grid-column:auto;}
     .modal-actions{position:sticky; bottom:-26px; background:white; padding:14px 0 4px;}
   }
+    /* ===== Thống kê doanh thu: bộ lọc, biểu đồ cột, biểu đồ tròn ===== */
+    .stats-filter{margin-bottom:18px; overflow:visible;}
+    .stats-filter .toolbar{border-bottom:none; align-items:flex-end; gap:14px; padding:16px 20px;}
+    .stats-field{display:flex; flex-direction:column; gap:5px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+    .stats-field input, .stats-field select{text-transform:none; letter-spacing:0; font-weight:400; color:var(--text); background:white; min-width:150px;}
+    .stats-presets{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto;}
+    .stats-chip{border:1px solid var(--line); background:white; border-radius:999px; padding:6px 13px; font-size:12px; font-weight:500; color:var(--muted); transition:.15s;}
+    .stats-chip:hover{background:var(--bg); color:var(--text);}
+    .stats-chip.active{background:var(--cobalt); border-color:var(--cobalt); color:white;}
+
+    .stats-chart-wrap{position:relative; min-height:300px; padding-top:8px;}
+    .stats-svg{display:block; max-width:100%; font-family:'IBM Plex Sans', sans-serif;}
+    .stats-bar{transition:opacity .12s;}
+    .stats-bar.dim{opacity:.45;}
+    .stats-hit{cursor:pointer;}
+    .stats-empty{display:flex; align-items:center; justify-content:center; min-height:280px; color:var(--muted); font-size:13px; text-align:center; padding:0 20px;}
+    .stats-tip{
+      position:absolute; left:0; top:0; z-index:5; pointer-events:none; opacity:0; transition:opacity .12s;
+      background:var(--graphite); color:white; border-radius:8px; padding:8px 11px;
+      font-size:12px; line-height:1.55; white-space:nowrap; box-shadow:0 8px 24px rgba(15,20,32,.22);
+    }
+    .stats-tip.show{opacity:1;}
+    .stats-tip b{display:block; font-weight:600; margin-bottom:2px;}
+
+    .stats-pie-body{padding:14px 20px 18px; display:flex; flex-direction:column; align-items:center; gap:14px;}
+    .stats-pie-wrap{position:relative; width:240px; max-width:100%; min-height:240px;}
+    .stats-pie-wrap .stats-empty{min-height:240px;}
+    .stats-slice{transition:transform .15s, opacity .15s; cursor:pointer;}
+    .stats-slice.dim{opacity:.45;}
+    .stats-legend{width:100%; display:flex; flex-direction:column;}
+    .stats-legend-row{display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; font-size:13px; transition:background .12s;}
+    .stats-legend-row.active{background:var(--bg);}
+    .stats-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+    .stats-legend-name{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    .stats-legend-val{font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--muted);}
+    .stats-legend-pct{font-family:'IBM Plex Mono', monospace; font-weight:600; min-width:48px; text-align:right;}
+
+    @media (max-width:760px){
+      .stats-presets{margin-left:0;}
+      .stats-filter .toolbar{gap:10px;}
+      .stats-field{flex:1 1 140px;}
+      .stats-field input, .stats-field select{min-width:0; width:100%;}
+    }
