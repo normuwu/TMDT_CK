@@ -297,7 +297,7 @@
 
   <div class="utility">
     <span>🖨️ Kiểm tra file miễn phí — <b>Báo giá trong 2 giờ</b> cho đơn in 3D</span>
-    <span>Hỗ trợ: <b>1900 6868</b> · Theo dõi đơn hàng · <a href="../Auth/Đăng-nhập.jsp">Đăng nhập</a></span>
+    <span>Hỗ trợ: <b>1900 6868</b> · Theo dõi đơn hàng · <a href="../WEB-INF/views/auth/login.jsp">Đăng nhập</a></span>
   </div>
 
   <header>
@@ -313,7 +313,7 @@
       <a href="lien-he.jsp">Hỗ trợ</a>
     </nav>
     <div class="head-actions">
-      <a href="../Auth/Đăng-nhập.jsp" style="font-weight:600;">Tài khoản</a>
+      <a href="../WEB-INF/views/auth/login.jsp" style="font-weight:600;">Tài khoản</a>
       <button class="cart-btn">🛒 Giỏ hàng <span class="badge">0</span></button>
     </div>
   </header>

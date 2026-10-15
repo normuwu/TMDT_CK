@@ -283,7 +283,7 @@
   <!-- ============ UTILITY BAR ============ -->
   <div class="utility">
     <span>🚚 Miễn phí thiết kế mockup cho đơn từ 20 sản phẩm — <b>Voucher 100K</b> cho đơn đầu tiên</span>
-    <span>Hỗ trợ: <b>1900 6868</b> · Theo dõi đơn hàng · <a href="../Auth/Đăng-nhập.jsp" onclick="openLogin();return false;">Đăng nhập</a></span>
+    <span>Hỗ trợ: <b>1900 6868</b> · Theo dõi đơn hàng · <a href="../WEB-INF/views/auth/login.jsp" onclick="openLogin();return false;">Đăng nhập</a></span>
   </div>
 
   <!-- ============ HEADER ============ -->
@@ -306,7 +306,7 @@
     </div>
     <div class="head-actions">
       <div id="authArea">
-        <a href="../Auth/Đăng-nhập.jsp" onclick="openLogin();return false;" style="font-weight:600;">Tài khoản</a>
+        <a href="../WEB-INF/views/auth/login.jsp" onclick="openLogin();return false;" style="font-weight:600;">Tài khoản</a>
       </div>
       <button class="cart-btn" onclick="openCart()">🛒 Giỏ hàng <span class="badge" id="cartBadge">3</span></button>
     </div>
