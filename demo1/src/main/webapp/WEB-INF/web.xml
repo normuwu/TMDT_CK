@@ -17,6 +17,11 @@
             <url-pattern>/WEB-INF/views/auth/*</url-pattern>
             <el-ignored>false</el-ignored>
         </jsp-property-group>
+        <!-- Fragment dùng chung (session-info.jsp...) cũng cần EL + JSTL -->
+        <jsp-property-group>
+            <url-pattern>/WEB-INF/views/common/*</url-pattern>
+            <el-ignored>false</el-ignored>
+        </jsp-property-group>
     </jsp-config>
 
     <!-- Filter thứ tự được đảm bảo bởi khai báo DD (annotation không đảm bảo rung tự):
@@ -50,11 +55,12 @@
 
     <session-config>
         <session-timeout>30</session-timeout>
-        <!-- Chặn ;jsessionid= trên URL: session chỉ theo cookie -->
-        <tracking-mode>COOKIE</tracking-mode>
         <cookie-config>
             <http-only>true</http-only>
         </cookie-config>
+        <!-- Chặn ;jsessionid= trên URL: session chỉ theo cookie.
+             Thứ tự bắt buộc theo schema: session-timeout -> cookie-config -> tracking-mode -->
+        <tracking-mode>COOKIE</tracking-mode>
     </session-config>
 
 </web-app>
