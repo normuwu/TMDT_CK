@@ -4,18 +4,54 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
 
-    <!-- Tắt đánh giá EL cho toàn bộ JSP: các trang chỉ là HTML + JavaScript thuần,
-         trong khi JS template-literal host dùng ${...} - nếu để EL xử lý sẽ gây
-         PropertyNotFoundException và HTTP 500. Không trang nào dùng JSP EL/JSTL thật. -->
+    <!-- Trang cũ (chỉ HTML + JS thuần, script JS có ${...}): tắt EL để tránh
+         PropertyNotFoundException -->
     <jsp-config>
         <jsp-property-group>
             <url-pattern>*.jsp</url-pattern>
             <el-ignored>true</el-ignored>
         </jsp-property-group>
+        <!-- Auth views dùng EL + JSTL thật (jakarta.tags.core): pattern cụ thể hơn
+             (matching theo kiểu servlet-mapping) nên ghi đè group phía trên -->
+        <jsp-property-group>
+            <url-pattern>/WEB-INF/views/auth/*</url-pattern>
+            <el-ignored>false</el-ignored>
+        </jsp-property-group>
     </jsp-config>
+
+    <!-- Filter thứ tự được đảm bảo bởi khai báo DD (annotation không đảm bảo rung tự):
+         1) EncodingFilter UTF-8 -> 2) CsrfFilter -> (AuthFilter thêm ở giai đoạn 4) -->
+    <filter>
+        <filter-name>EncodingFilter</filter-name>
+        <filter-class>com.tmdt.filter.EncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>EncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>CsrfFilter</filter-name>
+        <filter-class>com.tmdt.filter.CsrfFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CsrfFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>com.tmdt.filter.AuthFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
     <session-config>
         <session-timeout>30</session-timeout>
+        <!-- Chặn ;jsessionid= trên URL: session chỉ theo cookie -->
+        <tracking-mode>COOKIE</tracking-mode>
         <cookie-config>
             <http-only>true</http-only>
         </cookie-config>

@@ -16,7 +16,7 @@
   <a href="../auth/register-supplier.jsp">Đăng ký NCC</a>
   <a href="../auth/forgot-password.jsp">Quên mật khẩu</a>
   <a href="profile.jsp" class="on">Chỉnh sửa thông tin</a>
-  <a href="../auth/accounts.jsp">Quản lý tài khoản</a>
+  <a href="../admin/accounts.jsp">Quản lý tài khoản</a>
 </nav>
 
 <main class="screen on kh" id="profile" data-t="kh">
