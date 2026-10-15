@@ -54,10 +54,14 @@ document.addEventListener('click', (e) => {
 
 /* ---------- Form submissions ---------- */
 document.addEventListener('submit', (e) => {
+  const f = e.target;
+  /* Demo-only interception: real auth forms (POST /login, /register,
+     /forgot-password, /resend-verification, /reset-password) have no
+     data-act/data-msg attributes and MUST be submitted to the servlets. */
+  if (!f.dataset.act && !f.dataset.msg) return;
   e.preventDefault();
 
   /* Forgot password flow */
-  const f = e.target;
   if (f.dataset.act === 'forgot') {
     const input = f.querySelector('input[type="email"]');
     const email = input ? input.value.trim() : '';

@@ -39,7 +39,7 @@
             <input type="hidden" name="redirect" value="<c:out value='${param.redirect}'/>">
 
             <div class="field${not empty errors.identifier ? ' has-err' : ''}">
-                <label for="l1">Email hoặc số điện thoại</label>
+                <label for="l1">Email</label>
                 <input id="l1" name="identifier" type="text" autocomplete="username" placeholder="ban@email.com"
                        value="<c:out value='${param.identifier}'/>" required>
                 <c:if test="${not empty errors.identifier}"><p class="err"><c:out value="${errors.identifier}"/></p></c:if>

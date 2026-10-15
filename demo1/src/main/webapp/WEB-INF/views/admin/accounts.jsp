@@ -11,10 +11,10 @@
 <body data-t="ad">
 
 <nav class="sw" aria-label="Điều hướng">
-  <a href="login.jsp">Đăng nhập</a>
-  <a href="register.jsp">Tạo tài khoản</a>
-  <a href="register-supplier.jsp">Đăng ký NCC</a>
-  <a href="forgot-password.jsp">Quên mật khẩu</a>
+  <a href="../auth/login.jsp">Đăng nhập</a>
+  <a href="../auth/register.jsp">Tạo tài khoản</a>
+  <a href="../auth/register-supplier.jsp">Đăng ký NCC</a>
+  <a href="../auth/forgot-password.jsp">Quên mật khẩu</a>
   <a href="../profile/profile.jsp">Chỉnh sửa thông tin</a>
   <a href="accounts.jsp" class="on">Quản lý tài khoản</a>
 </nav>
