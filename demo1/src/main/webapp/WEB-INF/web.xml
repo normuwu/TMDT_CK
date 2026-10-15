@@ -4,6 +4,16 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
 
+    <!-- Tắt đánh giá EL cho toàn bộ JSP: các trang chỉ là HTML + JavaScript thuần,
+         trong khi JS template-literal host dùng ${...} - nếu để EL xử lý sẽ gây
+         PropertyNotFoundException và HTTP 500. Không trang nào dùng JSP EL/JSTL thật. -->
+    <jsp-config>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <el-ignored>true</el-ignored>
+        </jsp-property-group>
+    </jsp-config>
+
     <session-config>
         <session-timeout>30</session-timeout>
         <cookie-config>
