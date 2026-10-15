@@ -6,17 +6,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PrintKraft Admin — Quản lý tài khoản</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="auth.css">
+<link rel="stylesheet" href="../../../assets/css/auth.css">
 </head>
 <body data-t="ad">
 
 <nav class="sw" aria-label="Điều hướng">
-  <a href="Đăng-nhập.jsp">Đăng nhập</a>
-  <a href="Tạo-tài-khoản.jsp">Tạo tài khoản</a>
-  <a href="Đăng-ký-NCC.jsp">Đăng ký NCC</a>
-  <a href="Quên-mật-khẩu.jsp">Quên mật khẩu</a>
-  <a href="Chỉnh-sửa-thông-tin.jsp">Chỉnh sửa thông tin</a>
-  <a href="Quản-lý-tài-khoản.jsp" class="on">Quản lý tài khoản</a>
+  <a href="login.jsp">Đăng nhập</a>
+  <a href="register.jsp">Tạo tài khoản</a>
+  <a href="register-supplier.jsp">Đăng ký NCC</a>
+  <a href="forgot-password.jsp">Quên mật khẩu</a>
+  <a href="../profile/profile.jsp">Chỉnh sửa thông tin</a>
+  <a href="accounts.jsp" class="on">Quản lý tài khoản</a>
 </nav>
 
 <div class="screen on ad" id="accounts" data-t="ad">
@@ -57,7 +57,7 @@
 
 <div class="toast" id="toast" role="status"></div>
 
-<script src="auth.js"></script>
-<script src="auth.js"></script>
+<script src="../../../assets/js/auth.js"></script>
+<script src="../../../assets/js/auth.js"></script>
 </body>
 </html>

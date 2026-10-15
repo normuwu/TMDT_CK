@@ -480,7 +480,7 @@ var store={
 /* ---------- HEADER ---------- */
 function renderHeader(active){
   var el=document.getElementById('site-header');if(!el)return;
-  el.innerHTML='<div class="utility"><span>🚚 Miễn phí thiết kế mockup cho đơn từ 20 sản phẩm — <b>Voucher 100K</b> cho đơn đầu tiên</span><span>Hỗ trợ: <b>1900 6868</b> · <a href="don_hang_cua_toi_3d.jsp">Theo dõi đơn hàng</a> · <a href="../Auth/Đăng-nhập.jsp" onclick="openLogin();return false;">Đăng nhập</a></span></div>'+
+  el.innerHTML='<div class="utility"><span>🚚 Miễn phí thiết kế mockup cho đơn từ 20 sản phẩm — <b>Voucher 100K</b> cho đơn đầu tiên</span><span>Hỗ trợ: <b>1900 6868</b> · <a href="don_hang_cua_toi_3d.jsp">Theo dõi đơn hàng</a> · <a href="../WEB-INF/views/auth/login.jsp" onclick="openLogin();return false;">Đăng nhập</a></span></div>'+
   '<header><a href="trang_chu.jsp" class="logo"><span class="mark"></span> PrintKraft</a><nav id="mainNav">'+
   NAV_ITEMS.map(function(i){return '<a href="'+i.href+'" class="'+(i.id===active?'active':'')+'">'+i.label+'</a>'}).join('')+
   '</nav><div class="search-wrap"><input type="text" id="globalSearch" placeholder="Tìm áo thun, cốc sứ, poster..."><button onclick="doGlobalSearch()">Tìm</button></div>'+
@@ -515,7 +515,7 @@ function renderAuthArea(){
     '<button class="user-chip" onclick="location.href=\'don_hang_cua_toi_3d.jsp\'"><span class="avatar">MA</span> Minh Anh</button>'+
     '<button onclick="logout()" style="font-size:12.5px;font-weight:600;color:var(--ink-soft);">Thoát</button></div>';
   } else {
-    area.innerHTML='<a href="../Auth/Đăng-nhập.jsp" onclick="openLogin();return false;" style="font-weight:600;">Tài khoản</a>';
+    area.innerHTML='<a href="../WEB-INF/views/auth/login.jsp" onclick="openLogin();return false;" style="font-weight:600;">Tài khoản</a>';
   }
 }
 
@@ -897,7 +897,7 @@ function injectSharedUI(){
   '</div><div class="drawer-foot"><div class="row"><span>Tạm tính</span><span>6.786.000đ</span></div><div class="row"><span>Phí vận chuyển</span><span>Miễn phí</span></div><div class="row total"><span>Tổng cộng</span><span>6.786.000đ</span></div><button class="btn-primary" style="width:100%;" onclick="openPayment()">Tiến hành thanh toán</button></div></aside>'+
 
   /* LOGIN MODAL */
-  '<div class="modal" id="loginModal"><div class="modal-box"><button class="modal-close" onclick="closeAll()">✕</button><h3>Đăng nhập PrintKraft</h3><div class="sub">Quản lý đơn hàng, thiết kế và địa chỉ giao hàng của bạn</div><div class="demo-hint" style="display:flex;margin-bottom:20px;">🔑 Demo: tài khoản <b>user</b> · mật khẩu <b>123</b></div><div class="form-error" id="loginError">Sai tài khoản hoặc mật khẩu. Vui lòng thử lại (user / 123).</div><div class="field"><label>Tài khoản</label><input id="loginUser" placeholder="user" autocomplete="off"></div><div class="field"><label>Mật khẩu</label><input id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key===\'Enter\')doLogin()"></div><button class="btn-primary" style="width:100%;" onclick="doLogin()">Đăng nhập</button><div class="divider">hoặc</div><div class="social-row"><button onclick="toast(\'Đăng nhập bằng Google (demo)\')">Google</button><button onclick="toast(\'Đăng nhập bằng Facebook (demo)\')">Facebook</button></div><div style="text-align:center;font-size:13px;color:var(--ink-soft);">Chưa có tài khoản? <a href="../Auth/Tạo-tài-khoản.jsp" style="color:var(--violet);font-weight:600;">Đăng ký ngay</a></div></div></div>'+
+  '<div class="modal" id="loginModal"><div class="modal-box"><button class="modal-close" onclick="closeAll()">✕</button><h3>Đăng nhập PrintKraft</h3><div class="sub">Quản lý đơn hàng, thiết kế và địa chỉ giao hàng của bạn</div><div class="demo-hint" style="display:flex;margin-bottom:20px;">🔑 Demo: tài khoản <b>user</b> · mật khẩu <b>123</b></div><div class="form-error" id="loginError">Sai tài khoản hoặc mật khẩu. Vui lòng thử lại (user / 123).</div><div class="field"><label>Tài khoản</label><input id="loginUser" placeholder="user" autocomplete="off"></div><div class="field"><label>Mật khẩu</label><input id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key===\'Enter\')doLogin()"></div><button class="btn-primary" style="width:100%;" onclick="doLogin()">Đăng nhập</button><div class="divider">hoặc</div><div class="social-row"><button onclick="toast(\'Đăng nhập bằng Google (demo)\')">Google</button><button onclick="toast(\'Đăng nhập bằng Facebook (demo)\')">Facebook</button></div><div style="text-align:center;font-size:13px;color:var(--ink-soft);">Chưa có tài khoản? <a href="../WEB-INF/views/auth/register.jsp" style="color:var(--violet);font-weight:600;">Đăng ký ngay</a></div></div></div>'+
 
   /* PAYMENT MODAL */
   '<div class="modal" id="paymentModal"><div class="modal-box wide"><button class="modal-close" onclick="closeAll()">✕</button><h3 id="payTitle">Thanh toán đơn hàng</h3><div class="sub" id="paySub">Hoàn tất 3 bước để đặt hàng</div>'+
