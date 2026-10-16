@@ -451,7 +451,7 @@
 
     var NAV_ITEMS=[
         {id:'home',label:'Trang chủ',href:'trang_chu.jsp'},
-        {id:'san-pham',label:'Sản phẩm',href:'dat_in_3d.jsp'},
+        {id:'san-pham',label:'Sản phẩm',href:'san_pham.jsp'},
         {id:'studio',label:'Tự thiết kế',href:'dat_in_3d.jsp'},
         {id:'doanh-nghiep',label:'Doanh nghiệp',href:'trang_chu.jsp'},
         {id:'nhacungcap',label:'Nhà cung cấp',href:'tim-kiem-nha-cung-cap.jsp'},
