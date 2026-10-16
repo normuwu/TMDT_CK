@@ -20,6 +20,7 @@
     </div>
     <div class="nav-group">
       <div class="nav-label">Vận hành</div>
+      <a class="nav-item" href="admin.jsp#products"><span class="ic">🏷️</span> Sản phẩm</a>
       <a class="nav-item" href="admin.jsp#orders"><span class="ic">📦</span> Đơn hàng</a>
       <a class="nav-item" href="admin.jsp#suppliers"><span class="ic">🏭</span> Xưởng in đối tác</a>
       <a class="nav-item" href="admin-ncc.jsp"><span class="ic">🏢</span> Nhà cung cấp</a>

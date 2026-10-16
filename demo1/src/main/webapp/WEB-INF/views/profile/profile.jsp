@@ -6,17 +6,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PrintKraft — Chỉnh sửa thông tin</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="auth.css">
+<link rel="stylesheet" href="../../../assets/css/auth.css">
 </head>
 <body data-t="kh">
 
 <nav class="sw" aria-label="Điều hướng">
-  <a href="Đăng-nhập.jsp">Đăng nhập</a>
-  <a href="Tạo-tài-khoản.jsp">Tạo tài khoản</a>
-  <a href="Đăng-ký-NCC.jsp">Đăng ký NCC</a>
-  <a href="Quên-mật-khẩu.jsp">Quên mật khẩu</a>
-  <a href="Chỉnh-sửa-thông-tin.jsp" class="on">Chỉnh sửa thông tin</a>
-  <a href="Quản-lý-tài-khoản.jsp">Quản lý tài khoản</a>
+  <a href="../auth/login.jsp">Đăng nhập</a>
+  <a href="../auth/register.jsp">Tạo tài khoản</a>
+  <a href="../auth/register-supplier.jsp">Đăng ký NCC</a>
+  <a href="../auth/forgot-password.jsp">Quên mật khẩu</a>
+  <a href="profile.jsp" class="on">Chỉnh sửa thông tin</a>
+  <a href="../admin/accounts.jsp">Quản lý tài khoản</a>
 </nav>
 
 <main class="screen on kh" id="profile" data-t="kh">
@@ -43,14 +43,14 @@
         <div class="field"><label for="p7">Mật khẩu mới</label><input id="p7" type="password" minlength="8" placeholder="Tối thiểu 8 ký tự"></div>
         <div class="field"><label for="p8">Nhập lại mật khẩu mới</label><input id="p8" type="password" minlength="8"></div>
       </div>
-      <div class="actions"><a class="btn o auto" href="Đăng-nhập.jsp">Hủy</a><button class="btn auto">Lưu thay đổi</button></div>
+      <div class="actions"><a class="btn o auto" href="../auth/login.jsp">Hủy</a><button class="btn auto">Lưu thay đổi</button></div>
     </form>
   </div>
 </main>
 
 <div class="toast" id="toast" role="status"></div>
 
-<script src="auth.js"></script>
+<script src="../../../assets/js/auth.js"></script>
 </body>
 </html></body>
 </html>

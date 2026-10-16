@@ -14,6 +14,7 @@ function toast(message){
 const pageTitles = {
   dashboard:['Bảng điều khiển vận hành','Thứ Bảy, 26 tháng 9, 2026'],
   reports:['Báo cáo & Doanh thu','Phân tích hiệu suất kinh doanh'],
+  products:['Sản phẩm','Danh mục sản phẩm, giá bán và tồn kho'],
   orders:['Quản lý đơn hàng','Toàn bộ đơn hàng trên hệ thống'],
   suppliers:['Xưởng in đối tác','120 xưởng in trên toàn quốc'],
   disputes:['Tranh chấp','Xử lý khiếu nại giữa khách hàng và xưởng in'],
@@ -121,7 +122,7 @@ function nowLabel(){
 }
 
 function pill(status){
-  const colors = {'Hoạt động':'green','Đang làm':'green','Hiệu lực':'green','Đủ hàng':'green','Đã gửi':'green','Đã xử lý':'green','Ổn định':'green','Chờ duyệt':'amber','Theo dõi':'amber','Sắp thiếu':'amber','Sắp hết hạn':'amber','Tạm nghỉ':'amber','Đã lên lịch':'blue','Chờ ký':'blue','Bản nháp':'gray','Bị khóa':'red','Tạm dừng':'red','Đã nghỉ việc':'red','Cần nhập':'red','Hết hiệu lực':'gray','Gián đoạn':'red','Chậm':'amber','Đang chạy':'blue'};
+  const colors = {'Hoạt động':'green','Đang làm':'green','Hiệu lực':'green','Đủ hàng':'green','Đã gửi':'green','Đã xử lý':'green','Ổn định':'green','Chờ duyệt':'amber','Theo dõi':'amber','Sắp thiếu':'amber','Sắp hết hạn':'amber','Tạm nghỉ':'amber','Đã lên lịch':'blue','Chờ ký':'blue','Bản nháp':'gray','Bị khóa':'red','Tạm dừng':'red','Đã nghỉ việc':'red','Cần nhập':'red','Hết hiệu lực':'gray','Gián đoạn':'red','Chậm':'amber','Đang chạy':'blue','Đang sản xuất':'blue','Đang giao':'blue','Trễ hạn':'amber','Khiếu nại':'red','Hoàn/Hủy':'gray','Đang bán':'green','Sắp hết hàng':'amber','Ngừng bán':'gray'};
   return '<span class="pill ' + (colors[status] || 'gray') + '"><span class="dot"></span>' + escapeHtml(status) + '</span>';
 }
 
@@ -154,6 +155,7 @@ const STORAGE_KEY = 'printkraft-admin-functional-v1';
 const resources = [
   {key:'users',label:'Người dùng'},
   {key:'orders',label:'Đơn hàng'},
+  {key:'products',label:'Sản phẩm'},
   {key:'suppliers',label:'Nhà cung cấp'},
   {key:'inventory',label:'Kho'},
   {key:'contracts',label:'Hợp đồng'},
@@ -172,12 +174,34 @@ const seedData = {
     {id:'USR-003',name:'Sài Gòn Print',email:'ops@sgprint.vn',phone:'02838123456',type:'NCC',department:'Đối tác',roleId:'ROLE-SUPPLIER',status:'Chờ duyệt',lastLogin:'Chưa đăng nhập',twoFactor:false},
     {id:'USR-004',name:'Quà Tặng An',email:'contact@quatang-an.vn',phone:'0909777666',type:'Khách hàng',department:'Doanh nghiệp',roleId:'ROLE-CUSTOMER',status:'Bị khóa',lastLogin:'22/09/2026 17:22',twoFactor:false}
   ],
+  orders:[
+    {id:'PK-08231',customer:'Minh Anh Store',product:'Mô hình Luffy Gear 5',supplier:'Sài Gòn Print',quantity:1200,value:4680000,status:'Đang sản xuất',createdAt:'2026-09-26 08:12'},
+    {id:'PK-08230',customer:'Local Brand Co.',product:'Áo thun in DTG trắng',supplier:'Hà Nội Digital',quantity:2600,value:12400000,status:'Trễ hạn',createdAt:'2026-09-25 16:40'},
+    {id:'PK-08229',customer:'Nguyễn Thảo',product:'Mô hình Zoro Three Sword',supplier:'Đà Nẵng Xpress',quantity:180,value:890000,status:'Hoàn tất',createdAt:'2026-09-25 14:20'},
+    {id:'PK-08228',customer:'Quà Tặng Việt',product:'Cốc sứ in logo 350ml',supplier:'Sài Gòn Print',quantity:620,value:6250000,status:'Khiếu nại',createdAt:'2026-09-24 10:05'},
+    {id:'PK-08227',customer:'The Coffee House X',product:'Chi tiết cơ khí trục in',supplier:'Cần Thơ Print',quantity:140,value:3120000,status:'Đang sản xuất',createdAt:'2026-09-24 09:15'},
+    {id:'PK-08226',customer:'Cần Thơ Store',product:'Mô hình Mixi Gaming RGB',supplier:'Cần Thơ Print',quantity:96,value:1480000,status:'Hoàn tất',createdAt:'2026-09-18 15:30'},
+    {id:'PK-08225',customer:'Minh Anh Store',product:'Mô hình Luffy Gear 5',supplier:'Sài Gòn Print',quantity:640,value:2240000,status:'Hoàn tất',createdAt:'2026-09-10 11:00'},
+    {id:'PK-08224',customer:'Hải Phòng Retail',product:'Banner canvas A3',supplier:'Hải Phòng In Ấn',quantity:300,value:1860000,status:'Đang giao',createdAt:'2026-08-30 13:45'},
+    {id:'PK-08223',customer:'Bình Dương Foods',product:'Tem nhãn decal cuộn',supplier:'Bình Dương Print Pro',quantity:5400,value:3960000,status:'Hoàn/Hủy',createdAt:'2026-08-12 09:05'},
+    {id:'PK-08222',customer:'Nha Trang Resort',product:'Mô hình Zoro Three Sword',supplier:'Nha Trang In Nhanh',quantity:120,value:980000,status:'Hoàn tất',createdAt:'2026-07-25 16:10'}
+  ],
+  products:[
+    {id:'SP-001',sku:'SP-3D-LUFFY',name:'Mô hình Luffy Gear 5',category:'Mô hình Luffy',price:250000,stock:420,minStock:150,sold:1840,supplier:'Sài Gòn Print',status:'Đang bán',updated:'26/09/2026 09:20'},
+    {id:'SP-002',sku:'SP-3D-ZORO',name:'Mô hình Zoro Three Sword',category:'Mô hình Zoro',price:235000,stock:96,minStock:120,sold:1420,supplier:'Hà Nội Digital',status:'Sắp hết hàng',updated:'26/09/2026 08:45'},
+    {id:'SP-003',sku:'SP-3D-MIXI',name:'Mô hình Mixi Gaming RGB',category:'Mô hình Mixi Gaming',price:310000,stock:284,minStock:100,sold:980,supplier:'Đà Nẵng Xpress',status:'Đang bán',updated:'25/09/2026 17:10'},
+    {id:'SP-004',sku:'SP-CK-CT1',name:'Chi tiết cơ khí trục in',category:'Chi tiết cơ khí',price:420000,stock:64,minStock:40,sold:410,supplier:'Cần Thơ Print',status:'Đang bán',updated:'25/09/2026 15:35'},
+    {id:'SP-005',sku:'SP-TS-DTG',name:'Áo thun in DTG trắng',category:'Khác',price:180000,stock:1240,minStock:400,sold:3260,supplier:'Sài Gòn Print',status:'Đang bán',updated:'25/09/2026 11:25'},
+    {id:'SP-006',sku:'SP-MUG-350',name:'Cốc sứ in logo 350ml',category:'Khác',price:95000,stock:38,minStock:150,sold:2140,supplier:'Hà Nội Digital',status:'Sắp hết hàng',updated:'24/09/2026 16:40'},
+    {id:'SP-007',sku:'SP-BAN-A3',name:'Banner canvas A3',category:'Khác',price:62000,stock:520,minStock:120,sold:1260,supplier:'Hải Phòng In Ấn',status:'Đang bán',updated:'24/09/2026 10:05'},
+    {id:'SP-008',sku:'SP-DECAL-TM',name:'Tem nhãn decal cuộn',category:'Khác',price:84000,stock:0,minStock:200,sold:860,supplier:'Bình Dương Print Pro',status:'Ngừng bán',updated:'23/09/2026 14:30'}
+  ],
   roles:[
-    {id:'ROLE-ADMIN',name:'Quản trị viên',scope:'Toàn quyền hệ thống',system:true,permissions:{users:true,orders:true,suppliers:true,inventory:true,contracts:true,platform:true,notifications:true}},
-    {id:'ROLE-OPS',name:'Quản lý vận hành',scope:'Đơn hàng, NCC, tranh chấp và thông báo',system:false,permissions:{users:true,orders:true,suppliers:true,inventory:true,contracts:true,platform:false,notifications:true}},
-    {id:'ROLE-WAREHOUSE',name:'Quản lý kho',scope:'Nhập xuất tồn và kiểm kê kho',system:false,permissions:{users:false,orders:true,suppliers:false,inventory:true,contracts:false,platform:false,notifications:false}},
-    {id:'ROLE-SUPPLIER',name:'Nhà cung cấp',scope:'Đơn được phân công và vật tư liên quan',system:true,permissions:{users:false,orders:true,suppliers:false,inventory:true,contracts:false,platform:false,notifications:false}},
-    {id:'ROLE-CUSTOMER',name:'Khách hàng doanh nghiệp',scope:'Theo dõi đơn và hợp đồng của doanh nghiệp',system:true,permissions:{users:false,orders:true,suppliers:false,inventory:false,contracts:true,platform:false,notifications:false}}
+    {id:'ROLE-ADMIN',name:'Quản trị viên',scope:'Toàn quyền hệ thống',system:true,permissions:{users:true,orders:true,products:true,suppliers:true,inventory:true,contracts:true,platform:true,notifications:true}},
+    {id:'ROLE-OPS',name:'Quản lý vận hành',scope:'Đơn hàng, NCC, tranh chấp và thông báo',system:false,permissions:{users:true,orders:true,products:true,suppliers:true,inventory:true,contracts:true,platform:false,notifications:true}},
+    {id:'ROLE-WAREHOUSE',name:'Quản lý kho',scope:'Nhập xuất tồn và kiểm kê kho',system:false,permissions:{users:false,orders:true,products:false,suppliers:false,inventory:true,contracts:false,platform:false,notifications:false}},
+    {id:'ROLE-SUPPLIER',name:'Nhà cung cấp',scope:'Đơn được phân công và vật tư liên quan',system:true,permissions:{users:false,orders:true,products:false,suppliers:false,inventory:true,contracts:false,platform:false,notifications:false}},
+    {id:'ROLE-CUSTOMER',name:'Khách hàng doanh nghiệp',scope:'Theo dõi đơn và hợp đồng của doanh nghiệp',system:true,permissions:{users:false,orders:true,products:false,suppliers:false,inventory:false,contracts:true,platform:false,notifications:false}}
   ],
   accessRequests:[
     {id:'REQ-001',user:'Nguyễn Linh',roleId:'ROLE-OPS',reason:'Phụ trách điều phối miền Nam',status:'Chờ duyệt'},
@@ -251,6 +275,8 @@ function roleName(roleId){
 
 function refreshAll(){
   renderUsers();
+  renderProducts();
+  renderOrders();
   renderStaff();
   renderRoles();
   renderSuppliers();
@@ -426,6 +452,265 @@ function deleteStaff(id){
 function exportStaff(){
   const staff=state.users.filter(user=>user.type==='Nội bộ');
   downloadCsv('nhan-su-noi-bo.csv',['Mã nhân viên,Họ tên,Chức danh,Bộ phận,Email,SĐT,Ngày vào làm,Vai trò,Trạng thái',...staff.map(user=>[user.employeeCode||user.id,user.name,user.position||'',user.department,user.email,user.phone||'',user.startDate||'',roleName(user.roleId),staffStatus(user)].map(csvCell).join(','))]);
+}
+
+/* ===== Products (sản phẩm) ===== */
+const PRODUCT_CATEGORIES = ['Mô hình Luffy','Mô hình Zoro','Mô hình Mixi Gaming','Chi tiết cơ khí','Khác'];
+
+function vnd(value){ return Number(value || 0).toLocaleString('vi-VN') + 'đ'; }
+function productRevenue(product){ return Number(product.price || 0) * Number(product.sold || 0); }
+
+function renderProducts(){
+  const body = document.getElementById('productsTableBody');
+  if(!body) return;
+  const search = normalize(document.getElementById('productSearch')?.value);
+  const categoryFilter = document.getElementById('productCategoryFilter');
+  const previousCategory = categoryFilter.value;
+  const categories = [...new Set(PRODUCT_CATEGORIES.concat(state.products.map(product => product.category).filter(Boolean)))];
+  categoryFilter.innerHTML = '<option value="">Tất cả nhóm</option>' + categories.map(name => '<option>' + escapeHtml(name) + '</option>').join('');
+  categoryFilter.value = previousCategory;
+  const status = document.getElementById('productStatusFilter').value;
+  const filtered = state.products.filter(product =>
+    (!search || normalize([product.id, product.name, product.sku, product.category].join(' ')).includes(search)) &&
+    (!categoryFilter.value || product.category === categoryFilter.value) &&
+    (!status || product.status === status));
+  body.innerHTML = filtered.length ? filtered.map(product =>
+    '<tr><td><strong>' + escapeHtml(product.name) + '</strong><div class="table-note">' + escapeHtml(product.sku || product.id) + '</div></td>' +
+    '<td>' + escapeHtml(product.category) + '</td>' +
+    '<td class="num">' + vnd(product.price) + '</td>' +
+    '<td class="num">' + Number(product.stock || 0).toLocaleString('vi-VN') + '<div class="table-note">Tối thiểu ' + Number(product.minStock || 0).toLocaleString('vi-VN') + '</div></td>' +
+    '<td class="num">' + Number(product.sold || 0).toLocaleString('vi-VN') + '</td>' +
+    '<td>' + pill(product.status) + '</td>' +
+    '<td><div class="action-menu"><button class="mini-btn" type="button" onclick="viewProduct(\'' + product.id + '\')">Chi tiết</button><button class="mini-btn" type="button" onclick="openProductForm(\'' + product.id + '\')">Sửa</button><button class="mini-btn warning" type="button" onclick="toggleProductStatus(\'' + product.id + '\')">' + (product.status === 'Ngừng bán' ? 'Mở bán' : 'Ngừng bán') + '</button><button class="mini-btn danger" type="button" onclick="deleteProduct(\'' + product.id + '\')">Xóa</button></div></td></tr>'
+  ).join('') : emptyRow(7, 'Không tìm thấy sản phẩm', 'Thử thay đổi từ khóa hoặc bộ lọc.');
+  document.getElementById('productTotalCount').textContent = state.products.length;
+  document.getElementById('productActiveCount').textContent = state.products.filter(product => product.status === 'Đang bán').length;
+  document.getElementById('productLowCount').textContent = state.products.filter(product => product.status !== 'Đang bán').length;
+  document.getElementById('productResultCount').textContent = filtered.length + ' sản phẩm';
+  const ranked = [...state.products].sort((a, b) => productRevenue(b) - productRevenue(a));
+  const highest = ranked.length ? productRevenue(ranked[0]) || 1 : 1;
+  document.getElementById('productInsight').innerHTML = ranked.length ? ranked.slice(0, 5).map(product =>
+    '<div class="list-item"><div><div class="name">' + escapeHtml(product.name) + '</div><div class="meta">' + vnd(productRevenue(product)) + ' · ' + Number(product.sold || 0).toLocaleString('vi-VN') + ' đã bán</div></div><div><div class="bar-bg"><div class="bar-fill" style="width:' + Math.max(4, Math.round(productRevenue(product) / highest * 100)) + '%"></div></div></div></div>'
+  ).join('') : '<div class="empty-state"><strong>Chưa có sản phẩm</strong>Thêm sản phẩm để theo dõi hiệu quả kinh doanh.</div>';
+}
+
+function openProductForm(id){
+  const product = state.products.find(item => item.id === id);
+  const suppliers = state.suppliers.map(item => item.name);
+  openEntityModal({
+    title: product ? 'Sửa sản phẩm' : 'Thêm sản phẩm',
+    subtitle: product ? product.id + ' · Cập nhật giá bán và tồn kho' : 'Khai báo sản phẩm mới cho danh mục',
+    fields:
+      field('Tên sản phẩm', input('name', product?.name, 'text', 'required maxlength="120"')) +
+      field('Mã SKU', input('sku', product?.sku, 'text', 'required maxlength="40"')) +
+      field('Nhóm sản phẩm', select('category', PRODUCT_CATEGORIES, product?.category || PRODUCT_CATEGORIES[0])) +
+      field('Giá bán (đ)', input('price', product?.price ?? 100000, 'number', 'required min="1000" step="1000"')) +
+      field('Tồn kho', input('stock', product?.stock ?? 0, 'number', 'required min="0"')) +
+      field('Tồn tối thiểu', input('minStock', product?.minStock ?? 50, 'number', 'required min="0"')) +
+      field('Đã bán', input('sold', product?.sold ?? 0, 'number', 'required min="0"')) +
+      field('Xưởng sản xuất', select('supplier', suppliers.length ? suppliers : ['Xưởng khác'], product?.supplier || suppliers[0])) +
+      field('Trạng thái', select('status', ['Đang bán','Sắp hết hàng','Ngừng bán'], product?.status || 'Đang bán')),
+    submitText: product ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm',
+    onSubmit: data => {
+      const sku = data.get('sku').trim().toUpperCase();
+      if(state.products.some(item => item.sku === sku && item.id !== id)){ toast('Mã SKU đã tồn tại'); return; }
+      const stock = Number(data.get('stock')), minStock = Number(data.get('minStock'));
+      let status = data.get('status');
+      if(status === 'Đang bán' && stock < minStock) status = 'Sắp hết hàng';
+      const record = {id: product?.id || uid('SP'), name: data.get('name').trim(), sku, category: data.get('category'), price: Number(data.get('price')), stock, minStock, sold: Number(data.get('sold')), supplier: data.get('supplier'), status, updated: nowLabel()};
+      if(product) Object.assign(product, record); else state.products.unshift(record);
+      persist(product ? 'Đã cập nhật sản phẩm' : 'Đã thêm sản phẩm mới');
+      closeAll(); renderProducts();
+    }
+  });
+}
+
+function viewProduct(id){
+  const product = state.products.find(item => item.id === id);
+  if(!product) return;
+  openInfoModal('Chi tiết sản phẩm', (product.sku || product.id) + ' · ' + product.name,
+    '<div class="detail-grid">' +
+    '<div class="field"><label>Nhóm sản phẩm</label><strong>' + escapeHtml(product.category) + '</strong></div>' +
+    '<div class="field"><label>Xưởng sản xuất</label><strong>' + escapeHtml(product.supplier || 'Chưa gán') + '</strong></div>' +
+    '<div class="field"><label>Giá bán</label><strong>' + vnd(product.price) + '</strong></div>' +
+    '<div class="field"><label>Trạng thái</label><strong>' + escapeHtml(product.status) + '</strong></div>' +
+    '<div class="field"><label>Tồn kho / tối thiểu</label><strong>' + Number(product.stock || 0).toLocaleString('vi-VN') + ' / ' + Number(product.minStock || 0).toLocaleString('vi-VN') + '</strong></div>' +
+    '<div class="field"><label>Đã bán</label><strong>' + Number(product.sold || 0).toLocaleString('vi-VN') + '</strong></div>' +
+    '<div class="field"><label>Doanh thu ước tính</label><strong>' + vnd(productRevenue(product)) + '</strong></div>' +
+    '<div class="field"><label>Cập nhật gần nhất</label><strong>' + escapeHtml(product.updated || 'Chưa cập nhật') + '</strong></div>' +
+    '</div>');
+}
+
+function toggleProductStatus(id){
+  const product = state.products.find(item => item.id === id);
+  if(!product) return;
+  product.status = product.status === 'Ngừng bán' ? 'Đang bán' : 'Ngừng bán';
+  product.updated = nowLabel();
+  persist(product.status === 'Ngừng bán' ? 'Đã ngừng bán sản phẩm' : 'Đã mở bán lại sản phẩm');
+  renderProducts();
+}
+
+function deleteProduct(id){
+  const product = state.products.find(item => item.id === id);
+  if(!product) return;
+  confirmAction('Xóa sản phẩm','Sản phẩm ' + product.name + ' sẽ bị xóa khỏi danh mục.', () => {
+    state.products = state.products.filter(item => item.id !== id);
+    persist('Đã xóa sản phẩm');
+    renderProducts();
+  },'Xóa sản phẩm');
+}
+
+function exportProducts(){
+  downloadCsv('san-pham.csv',['Mã SKU,Tên sản phẩm,Nhóm,Giá bán,Tồn kho,Tồn tối thiểu,Đã bán,Xưởng sản xuất,Trạng thái',...state.products.map(product => [product.sku || product.id, product.name, product.category, product.price, product.stock, product.minStock, product.sold, product.supplier || '', product.status].map(csvCell).join(','))]);
+}
+
+function openProductInsight(){
+  const ranked = [...state.products].sort((a, b) => productRevenue(b) - productRevenue(a));
+  const total = ranked.reduce((sum, product) => sum + productRevenue(product), 0) || 1;
+  const categoryTotals = {};
+  state.products.forEach(product => { categoryTotals[product.category] = (categoryTotals[product.category] || 0) + productRevenue(product); });
+  openInfoModal('Phân tích danh mục','Doanh thu ước tính theo giá bán và số lượng đã bán',
+    '<div class="detail-grid"><div class="field"><label>Tổng doanh thu ước tính</label><strong>' + vnd(total) + '</strong></div>' +
+    '<div class="field"><label>Sản phẩm bán chạy nhất</label><strong>' + escapeHtml(ranked[0]?.name || 'Chưa có') + '</strong></div></div>' +
+    Object.keys(categoryTotals).map(name => '<div class="activity-item"><span class="activity-mark"></span><div><strong>' + escapeHtml(name) + '</strong><span>' + vnd(categoryTotals[name]) + ' · ' + (categoryTotals[name] / total * 100).toFixed(1).replace('.', ',') + '% doanh thu</span></div></div>').join(''));
+}
+
+/* ===== Orders (đơn hàng) ===== */
+const ORDER_STATUSES = ['Đang sản xuất','Đang giao','Hoàn tất','Trễ hạn','Khiếu nại','Hoàn/Hủy'];
+
+function isoToday(){ const now = new Date(); return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0'); }
+function shiftDays(key, days){ const date = new Date(key + 'T00:00:00Z'); date.setUTCDate(date.getUTCDate() + days); return date.toISOString().slice(0, 10); }
+function shortDate(value){ const parts = String(value || '').split(' '), date = parts[0].split('-'); return date.length < 3 ? String(value || '') : date[2] + '/' + date[1] + (parts[1] ? ' ' + parts[1] : ''); }
+function supplierTag(name){ const initials = String(name || '?').split(' ').slice(0,2).map(part => part[0]).join('').toUpperCase(); return '<div class="supplier-cell"><span class="sq">' + escapeHtml(initials) + '</span>' + escapeHtml(name || 'Chưa gán') + '</div>'; }
+function nextOrderId(){ const numbers = state.orders.map(order => Number(String(order.id).replace(/\D+/g, '')) || 0); return 'PK-' + String((numbers.length ? Math.max(...numbers) : 8231) + 1).padStart(5,'0'); }
+function orderMarker(){ return state.orders.reduce((latest, order) => { const day = String(order.createdAt || '').slice(0,10); return day > latest ? day : latest; }, ''); }
+
+function filteredOrders(){
+  const search = normalize(document.getElementById('orderSearch')?.value);
+  const supplierFilter = document.getElementById('orderSupplierFilter');
+  const status = document.getElementById('orderStatusFilter').value;
+  const range = document.getElementById('orderRangeFilter').value;
+  const cutoff = range ? shiftDays(orderMarker(), -(Number(range) - 1)) : '';
+  return state.orders.filter(order => {
+    const day = String(order.createdAt || '').slice(0,10);
+    return (!search || normalize([order.id, order.customer, order.supplier, order.product].join(' ')).includes(search)) &&
+      (!supplierFilter.value || order.supplier === supplierFilter.value) &&
+      (!status || order.status === status) &&
+      (!cutoff || day >= cutoff);
+  });
+}
+
+function renderOrders(){
+  const body = document.getElementById('ordersTableBody');
+  if(!body) return;
+  const supplierFilter = document.getElementById('orderSupplierFilter');
+  const previousSupplier = supplierFilter.value;
+  const suppliers = [...new Set(state.orders.map(order => order.supplier).filter(Boolean))].sort((a, b) => a.localeCompare(b,'vi'));
+  supplierFilter.innerHTML = '<option value="">Tất cả xưởng in</option>' + suppliers.map(name => '<option>' + escapeHtml(name) + '</option>').join('');
+  supplierFilter.value = previousSupplier;
+  const filtered = filteredOrders();
+  body.innerHTML = filtered.length ? filtered.map(order =>
+    '<tr><td class="order-id">' + escapeHtml(order.id) + '<div class="table-note">' + escapeHtml(order.product || 'Chưa gắn sản phẩm') + '</div></td>' +
+    '<td>' + escapeHtml(order.customer) + '</td>' +
+    '<td>' + supplierTag(order.supplier) + '</td>' +
+    '<td>' + pill(order.status) + '<div class="table-note">SL: ' + Number(order.quantity || 0).toLocaleString('vi-VN') + '</div></td>' +
+    '<td class="num">' + vnd(order.value) + '</td>' +
+    '<td class="mono">' + escapeHtml(shortDate(order.createdAt)) + '</td>' +
+    '<td><div class="action-menu"><button class="mini-btn" type="button" onclick="viewOrder(\'' + order.id + '\')">Chi tiết</button><button class="mini-btn" type="button" onclick="openOrderForm(\'' + order.id + '\')">Sửa</button><button class="mini-btn success" type="button" onclick="openOrderStatusForm(\'' + order.id + '\')">Trạng thái</button><button class="mini-btn danger" type="button" onclick="deleteOrder(\'' + order.id + '\')">Xóa</button></div></td></tr>'
+  ).join('') : emptyRow(7, 'Không tìm thấy đơn hàng', 'Thử thay đổi từ khóa hoặc bộ lọc.');
+  const totalValue = state.orders.reduce((sum, order) => sum + Number(order.value || 0), 0);
+  document.getElementById('orderTotalCount').textContent = state.orders.length;
+  document.getElementById('orderTotalValue').textContent = 'Tổng giá trị ' + vnd(totalValue);
+  document.getElementById('orderActiveCount').textContent = state.orders.filter(order => order.status === 'Đang sản xuất' || order.status === 'Đang giao').length;
+  document.getElementById('orderIssueCount').textContent = state.orders.filter(order => ['Trễ hạn','Khiếu nại','Hoàn/Hủy'].includes(order.status)).length;
+  document.getElementById('orderResultCount').textContent = filtered.length + ' đơn hàng';
+  renderDashboardOrders();
+}
+
+function renderDashboardOrders(){
+  const body = document.getElementById('dashboardOrdersBody');
+  if(!body) return;
+  const recent = [...state.orders].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).slice(0, 5);
+  body.innerHTML = recent.length ? recent.map(order =>
+    '<tr><td class="order-id">' + escapeHtml(order.id) + '</td><td>' + escapeHtml(order.customer) + '</td><td>' + supplierTag(order.supplier) + '</td><td>' + pill(order.status) + '</td><td class="num">' + vnd(order.value) + '</td></tr>'
+  ).join('') : emptyRow(5, 'Chưa có đơn hàng', 'Tạo đơn mới trong mục Quản lý đơn hàng.');
+}
+
+function openOrderForm(id){
+  const order = state.orders.find(item => item.id === id);
+  const products = [{value:'',label:'— Chưa gắn sản phẩm —'}].concat(state.products.map(product => ({value:product.name,label:product.name})));
+  const suppliers = [...new Set(state.suppliers.map(item => item.name).concat(state.orders.map(item => item.supplier)))].filter(Boolean).sort((a, b) => a.localeCompare(b,'vi'));
+  openEntityModal({
+    title: order ? 'Sửa đơn hàng' : 'Tạo đơn hàng',
+    subtitle: order ? order.id + ' · Cập nhật thông tin đơn' : 'Đơn mới sẽ được ghi nhận trên hệ thống',
+    fields:
+      field('Mã đơn', input('id', order?.id || nextOrderId(), 'text', 'required maxlength="20"')) +
+      field('Khách hàng', input('customer', order?.customer, 'text', 'required maxlength="120"')) +
+      field('Sản phẩm', select('product', products, order?.product || '')) +
+      field('Xưởng in', select('supplier', suppliers, order?.supplier || suppliers[0])) +
+      field('Số lượng', input('quantity', order?.quantity ?? 100, 'number', 'required min="1"')) +
+      field('Giá trị (đ)', input('value', order?.value ?? 1000000, 'number', 'required min="1000" step="1000"')) +
+      field('Trạng thái', select('status', ORDER_STATUSES, order?.status || 'Đang sản xuất')) +
+      field('Ngày tạo', input('createdAt', String(order?.createdAt || isoToday()).slice(0,10), 'date', 'required')),
+    submitText: order ? 'Cập nhật đơn' : 'Tạo đơn hàng',
+    onSubmit: data => {
+      const code = data.get('id').trim().toUpperCase();
+      if(state.orders.some(item => item.id === code && item.id !== id)){ toast('Mã đơn đã tồn tại'); return; }
+      const time = String(order?.createdAt || '').split(' ')[1] || '08:00';
+      const record = {id: code, customer: data.get('customer').trim(), product: data.get('product'), supplier: data.get('supplier'), quantity: Number(data.get('quantity')), value: Number(data.get('value')), status: data.get('status'), createdAt: data.get('createdAt') + ' ' + time};
+      if(order) Object.assign(order, record); else state.orders.unshift(record);
+      persist(order ? 'Đã cập nhật đơn hàng' : 'Đã tạo đơn hàng mới');
+      closeAll(); renderOrders();
+    }
+  });
+}
+
+function openOrderStatusForm(id){
+  const order = state.orders.find(item => item.id === id);
+  if(!order) return;
+  openEntityModal({
+    title: 'Cập nhật trạng thái',
+    subtitle: order.id + ' · ' + order.customer,
+    fields:
+      field('Trạng thái đơn', select('status', ORDER_STATUSES, order.status)) +
+      field('Ghi chú xử lý', input('note', '', 'text', 'required maxlength="160"'), true),
+    submitText: 'Cập nhật trạng thái',
+    onSubmit: data => {
+      order.status = data.get('status');
+      persist('Đã chuyển ' + order.id + ' sang "' + order.status + '"');
+      closeAll(); renderOrders();
+    }
+  });
+}
+
+function viewOrder(id){
+  const order = state.orders.find(item => item.id === id);
+  if(!order) return;
+  openInfoModal('Chi tiết đơn hàng', order.id + ' · ' + order.customer,
+    '<div class="detail-grid">' +
+    '<div class="field"><label>Khách hàng</label><strong>' + escapeHtml(order.customer) + '</strong></div>' +
+    '<div class="field"><label>Sản phẩm</label><strong>' + escapeHtml(order.product || 'Chưa gắn sản phẩm') + '</strong></div>' +
+    '<div class="field"><label>Xưởng in</label><strong>' + escapeHtml(order.supplier || 'Chưa gán') + '</strong></div>' +
+    '<div class="field"><label>Số lượng</label><strong>' + Number(order.quantity || 0).toLocaleString('vi-VN') + '</strong></div>' +
+    '<div class="field"><label>Giá trị đơn</label><strong>' + vnd(order.value) + '</strong></div>' +
+    '<div class="field"><label>Trạng thái</label><strong>' + escapeHtml(order.status) + '</strong></div>' +
+    '<div class="field"><label>Ngày tạo</label><strong>' + escapeHtml(shortDate(order.createdAt)) + '</strong></div>' +
+    '<div class="field"><label>Đơn giá trung bình</label><strong>' + vnd(Number(order.value || 0) / (Number(order.quantity) || 1)) + '</strong></div>' +
+    '</div>');
+}
+
+function deleteOrder(id){
+  const order = state.orders.find(item => item.id === id);
+  if(!order) return;
+  confirmAction('Xóa đơn hàng','Đơn ' + order.id + ' của ' + order.customer + ' sẽ bị xóa khỏi hệ thống.', () => {
+    state.orders = state.orders.filter(item => item.id !== id);
+    persist('Đã xóa đơn hàng');
+    renderOrders();
+  },'Xóa đơn hàng');
+}
+
+function exportOrders(){
+  downloadCsv('don-hang.csv',['Mã đơn,Khách hàng,Sản phẩm,Xưởng in,Số lượng,Giá trị,Trạng thái,Ngày tạo',...filteredOrders().map(order => [order.id, order.customer, order.product || '', order.supplier || '', order.quantity, order.value, order.status, order.createdAt].map(csvCell).join(','))]);
 }
 
 /* ===== RBAC ===== */
