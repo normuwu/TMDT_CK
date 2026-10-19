@@ -51,6 +51,14 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>5.1.0</version>
+            <!-- HikariCP kéo theo slf4j-api 1.7.36, không tương thích slf4j-simple 2.x
+                 (log bị tắt - NOP logger). Loại bỏ ở đây, dùng slf4j-api 2.0.13 khai báo bên dưới. -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Băm mật khẩu -->
@@ -72,7 +80,12 @@
             <version>2.0.3</version>
         </dependency>
 
-        <!-- Log -->
+        <!-- Log: slf4j-api 2.x khai báo trực tiếp + slf4j-simple 2.x cùng phiên bản -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.13</version>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
@@ -86,10 +99,8 @@
             <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
-        
+
     </dependencies>
-
-
 
     <build>
         <finalName>tmdt</finalName>
