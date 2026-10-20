@@ -4,7 +4,6 @@ import com.tmdt.model.SessionUser;
 import com.tmdt.service.AuthService;
 import com.tmdt.util.ClientIpUtil;
 import com.tmdt.util.FlashUtil;
-import com.tmdt.util.RememberMeCookie;
 import com.tmdt.util.TokenUtil;
 import com.tmdt.util.ValidationUtil;
 import com.tmdt.util.Views;
@@ -81,15 +80,6 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute(SessionUser.SESSION_KEY, outcome.user());
                 // Fresh CSRF token for the new session.
                 session.setAttribute("csrfToken", TokenUtil.generateRawToken());
-
-                // "Ghi nhớ đăng nhập": chỉ cấp cookie khi được tick; lỗi tạo
-                // token KHÔNG làm hỏng đăng nhập (createRememberToken trả null).
-                if ("on".equals(request.getParameter("remember"))) {
-                    String rawToken = authService.createRememberToken(outcome.user().getUserId());
-                    if (rawToken != null) {
-                        RememberMeCookie.set(response, rawToken, request.isSecure());
-                    }
-                }
 
                 String target = ValidationUtil.isSafeRedirect(redirectParam)
                         ? redirectParam

@@ -126,6 +126,31 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Profile edit: updates ONLY the three columns a user may change herself.
+     * Email, role, status and verification are deliberately not touched here.
+     */
+    public void updateProfile(Connection conn, int userId, String fullName,
+                              String phone, String defaultAddress) throws SQLException {
+        final String sql = "UPDATE users SET full_name = ?, phone = ?, default_address = ?, "
+                + "updated_at = CURRENT_TIMESTAMP WHERE user_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fullName);
+            if (phone == null || phone.isBlank()) {
+                ps.setNull(2, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(2, phone);
+            }
+            if (defaultAddress == null || defaultAddress.isBlank()) {
+                ps.setNull(3, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(3, defaultAddress);
+            }
+            ps.setInt(4, userId);
+            ps.executeUpdate();
+        }
+    }
+
     // ---------------------------------------------------------------------
     // Mapping
     // ---------------------------------------------------------------------
