@@ -14,9 +14,10 @@ public final class Views {
     public static final String FORGOT_PASSWORD = "/WEB-INF/views/auth/forgot-password.jsp";
     public static final String RESET_PASSWORD = "/WEB-INF/views/auth/reset-password.jsp";
     public static final String VERIFY_RESULT = "/WEB-INF/views/auth/verify-result.jsp";
+
     public static final String PRODUCT_LIST = "/WEB-INF/views/product/san_pham.jsp";
     public static final String PRODUCT_LIST_URL = "/KhachHang/san_pham.jsp";
-    public static final String PRODUCT_DETAIL = "/WEB-INF/views/product/chi_tiet_san_pham.jsp";
+    public static final String PRODUCT_DETAIL = "/WEB-INF/views/product/product-detail.jsp";
     public static final String PRODUCT_DETAIL_URL = "/KhachHang/chi-tiet-san-pham";
     // --- Browser-facing URLs (context path prepended by the caller) ---
     public static final String LOGIN_URL = "/login";

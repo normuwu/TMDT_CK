@@ -10,7 +10,6 @@ import com.tmdt.model.ProductFilter;
 import java.sql.SQLException;
 import java.util.List;
 
-/** Nghiệp vụ trang sản phẩm. Lỗi DB được gói thành IllegalStateException để servlet xử lý một chỗ. */
 public class ProductService {
 
     private final ProductDAO productDAO = new ProductDAO();

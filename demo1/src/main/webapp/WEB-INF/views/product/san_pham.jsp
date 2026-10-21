@@ -2,23 +2,11 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<%--
-  Trang danh sách sản phẩm.
-  Đường dẫn: /WEB-INF/views/product/san_pham.jsp (Views.PRODUCT_LIST).
-  KHÔNG mở trực tiếp file này: người dùng vào /KhachHang/san_pham.jsp, servlet
-  ProductListServlet xử lý rồi mới chuyển tiếp sang file này.
-  Dữ liệu từ ProductListServlet: result (PageResult<Product>), filter (ProductFilter),
-  categories / materials / suppliers (List<FilterOption>), sorts (ProductSort[]),
-  baseQuery (chuỗi query đã mã hóa, không có page), error (tùy chọn).
 
-  CSS : assets/css/printkraft.css (dùng chung) + assets/css/product.css (riêng sản phẩm)
-  JS  : assets/js/printkraft.js   (dùng chung) + assets/js/product.js   (riêng sản phẩm)
---%>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <c:set var="listUrl" value="${ctx}/KhachHang/san_pham.jsp"/>
 <c:set var="detailUrl" value="${ctx}/KhachHang/chi-tiet-san-pham"/>
-<%-- Tiền tố link phân trang: giữ nguyên bộ lọc, chỉ nối số trang phía sau --%>
 <c:set var="pgBase"><c:out value="${listUrl}?${baseQuery}&page="/></c:set>
 <c:set var="hasFilter" value="${not empty filter.keyword or filter.categoryId != null or filter.supplierId != null or filter.materialId != null or filter.minPrice != null or filter.maxPrice != null}"/>
 <!DOCTYPE html>
