@@ -4,7 +4,9 @@
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%--
   Trang danh sách sản phẩm.
-  Đường dẫn: /WEB-INF/views/product/products.jsp (Views.PRODUCT_LIST)
+  Đường dẫn: /WEB-INF/views/product/san_pham.jsp (Views.PRODUCT_LIST).
+  KHÔNG mở trực tiếp file này: người dùng vào /KhachHang/san_pham.jsp, servlet
+  ProductListServlet xử lý rồi mới chuyển tiếp sang file này.
   Dữ liệu từ ProductListServlet: result (PageResult<Product>), filter (ProductFilter),
   categories / materials / suppliers (List<FilterOption>), sorts (ProductSort[]),
   baseQuery (chuỗi query đã mã hóa, không có page), error (tùy chọn).
@@ -14,7 +16,7 @@
 --%>
 <fmt:setLocale value="vi_VN"/>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
-<c:set var="listUrl" value="${ctx}/KhachHang/san-pham"/>
+<c:set var="listUrl" value="${ctx}/KhachHang/san_pham.jsp"/>
 <c:set var="detailUrl" value="${ctx}/KhachHang/chi-tiet-san-pham"/>
 <%-- Tiền tố link phân trang: giữ nguyên bộ lọc, chỉ nối số trang phía sau --%>
 <c:set var="pgBase"><c:out value="${listUrl}?${baseQuery}&page="/></c:set>
@@ -30,7 +32,7 @@
     <link rel="stylesheet" href="${ctx}/assets/css/printkraft.css">
     <link rel="stylesheet" href="${ctx}/assets/css/product.css">
 </head>
-<body data-page="san-pham">
+<body data-page="san-pham" data-search="san_pham.jsp">
 <jsp:include page="/WEB-INF/views/common/session-info.jsp" />
 
 <div id="site-header"></div>
@@ -242,7 +244,6 @@
 </main>
 
 <div id="site-footer"></div>
-<div class="toast" id="toast">Đã thực hiện</div>
 
 <script src="${ctx}/assets/js/printkraft.js"></script>
 <script src="${ctx}/assets/js/product.js"></script>

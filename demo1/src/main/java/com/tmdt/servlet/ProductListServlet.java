@@ -23,7 +23,8 @@ import java.nio.charset.StandardCharsets;
  * Đặt dưới /KhachHang/ để các link tương đối trong header/footer của trang
  * (trang_chu.jsp, dat_in_3d.jsp...) vẫn trỏ đúng thư mục /KhachHang/.
  */
-@WebServlet(name = "ProductListServlet", urlPatterns = "/KhachHang/san-pham")
+@WebServlet(name = "ProductListServlet",
+        urlPatterns = {"/KhachHang/san_pham.jsp", "/KhachHang/san-pham"})
 public class ProductListServlet extends HttpServlet {
 
     private final ProductService productService = new ProductService();
