@@ -521,7 +521,7 @@
         var area=document.getElementById('authArea');if(!area)return;
         if(isLoggedIn()){
             area.innerHTML='<div style="display:flex;align-items:center;gap:8px;">'+
-                '<button class="user-chip" onclick="location.href=\''+PK.ctx+'/profile\'"><span class="avatar">'+escHtml(initialsOf(PK.name))+'</span> '+escHtml(shortName(PK.name))+'</button>'+
+                '<button class="user-chip" onclick="location.href=\'don_hang_cua_toi_3d.jsp\'"><span class="avatar">'+escHtml(initialsOf(PK.name))+'</span> '+escHtml(shortName(PK.name))+'</button>'+
                 '<button onclick="logout()" style="font-size:12.5px;font-weight:600;color:var(--ink-soft);">Thoát</button></div>';
         } else {
             area.innerHTML='<a href="'+PK.ctx+'/login" style="font-weight:600;">Tài khoản</a>';
