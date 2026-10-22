@@ -1,0 +1,137 @@
+/* =====================================================================
+   PrintKraft — CSS cho luồng giỏ hàng / thanh toán / đơn hàng.
+   Dùng chung biến màu + header/footer của printkraft.css.
+   ===================================================================== */
+
+.ord-wrap{max-width:1180px;margin:0 auto;padding:26px 32px 60px}
+.ord-breadcrumb{font-size:13px;color:var(--ink-soft);margin-bottom:18px}
+.ord-breadcrumb a{color:var(--violet);font-weight:600}
+.ord-breadcrumb .sep{margin:0 8px;opacity:.5}
+
+.ord-head{margin-bottom:22px}
+.ord-head h1{font-size:34px}
+.ord-head p{color:var(--ink-soft);font-size:14.5px;margin-top:8px}
+
+.alerts{margin-bottom:18px}
+.alert{border-radius:var(--r-sm);padding:12px 16px;font-size:13.5px;font-weight:500;margin-bottom:10px}
+.alert.ok{background:#E9F9F2;color:#0B6B4F}
+.alert.err{background:#FFECEC;color:#C0392B}
+.alert.info{background:#EEF4FF;color:#2C5282}
+
+.ord-layout{display:grid;grid-template-columns:1fr 360px;gap:26px;align-items:start}
+
+/* ===== Panel ===== */
+.ord-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:22px 24px;margin-bottom:20px}
+.ord-panel > h2{font-size:19px;margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.ord-panel > h2 .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--grad-primary);color:#fff}
+
+/* ===== Danh sách sản phẩm trong giỏ ===== */
+.cart-line{display:grid;grid-template-columns:76px 1fr auto;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.cart-line:last-child{border-bottom:none}
+.cart-thumb{width:76px;height:76px;border-radius:12px;overflow:hidden;background:#F2EFFF;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;color:var(--violet);font-size:20px}
+.cart-thumb img{width:100%;height:100%;object-fit:cover}
+.cart-name{font-weight:600;font-size:15px}
+.cart-name a:hover{color:var(--violet)}
+.cart-meta{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+.cart-unit{font-size:13px;color:var(--violet);font-weight:600;margin-top:6px}
+.cart-line-total{text-align:right;font-family:'Space Grotesk';font-weight:700;font-size:16px;white-space:nowrap}
+
+.qty-form{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.qty-form button{width:28px;height:28px;border:1.5px solid var(--line-strong);border-radius:8px;background:#fff;font-weight:700;transition:.16s}
+.qty-form button:hover:not(:disabled){border-color:var(--violet);color:var(--violet)}
+.qty-form button:disabled{opacity:.4;cursor:not-allowed}
+.qty-form input[type=number]{width:62px;height:28px;text-align:center;border:1.5px solid var(--line-strong);border-radius:8px;font-size:13px}
+.cart-actions{display:flex;gap:12px;align-items:center;margin-top:10px}
+.link-btn{font-size:12.5px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
+.link-btn:hover{color:var(--coral-deep)}
+.update-btn{font-size:12.5px;font-weight:600;color:var(--violet)}
+
+/* ===== Tóm tắt đơn ===== */
+.ord-summary{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:22px 24px;position:sticky;top:96px}
+.ord-summary h2{font-size:18px;margin-bottom:14px}
+.sum-row{display:flex;justify-content:space-between;gap:12px;font-size:13.5px;color:var(--ink-soft);padding:7px 0}
+.sum-row b{color:var(--ink)}
+.sum-div{height:1px;background:var(--line);margin:12px 0}
+.sum-total{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px;font-weight:600}
+.sum-total .big{font-family:'Space Grotesk';font-weight:700;font-size:23px;color:var(--violet)}
+.ord-summary .btn-primary,.ord-summary .btn-secondary{width:100%;margin-top:12px}
+.sum-note{font-size:12px;color:var(--ink-soft);margin-top:10px;text-align:center}
+
+/* ===== Trạng thái đơn / thanh toán ===== */
+.status{display:inline-block;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:600;white-space:nowrap}
+.status.pending{background:#FFF4E0;color:#B26A00}
+.status.confirmed{background:#EAF2FF;color:#2C5282}
+.status.shipping{background:#EEF0FF;color:#4C3BC7}
+.status.completed{background:#E9F9F2;color:#0B6B4F}
+.status.cancelled{background:#FFECEC;color:#C0392B}
+.status.paid{background:#E9F9F2;color:#0B6B4F}
+.status.unpaid{background:#FFF4E0;color:#B26A00}
+
+/* ===== Form thanh toán ===== */
+.pay-methods{display:flex;flex-direction:column;gap:10px}
+.pay-method{display:flex;align-items:center;gap:14px;border:1.5px solid var(--line-strong);border-radius:var(--r-md);padding:14px 16px;cursor:pointer;transition:.16s;background:#fff}
+.pay-method:hover{border-color:var(--violet)}
+.pay-method input{accent-color:var(--violet);width:18px;height:18px;flex-shrink:0}
+.pay-method .pm-ic{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pay-method .pm-body strong{display:block;font-size:14px}
+.pay-method .pm-body span{font-size:12.5px;color:var(--ink-soft)}
+.pay-method .pm-tag{margin-left:auto;font-size:11px;font-weight:700;color:var(--coral-deep);background:#FFECEC;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.field-error{color:var(--coral-deep);font-size:12px;margin-top:4px;font-weight:500}
+input.invalid,textarea.invalid{border-color:var(--coral-deep)!important;background:#FFF7F7}
+
+/* ===== Đơn hàng: lịch sử ===== */
+.order-card{border:1px solid var(--line);border-radius:var(--r-md);padding:16px 18px;margin-bottom:14px;background:#fff;transition:.16s}
+.order-card:hover{border-color:rgba(108,92,231,.35);box-shadow:var(--shadow-xs)}
+.order-top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.order-code{font-family:'Space Grotesk';font-weight:700;font-size:15px}
+.order-date{font-size:12.5px;color:var(--ink-soft)}
+.order-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.order-cell .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);font-weight:600}
+.order-cell .val{font-size:14px;margin-top:3px;font-weight:600}
+.order-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap}
+.order-total{font-family:'Space Grotesk';font-weight:700;font-size:18px}
+.order-total small{font-family:'IBM Plex Sans';font-weight:500;font-size:12px;color:var(--ink-soft);margin-right:6px}
+
+/* ===== Chi tiết đơn ===== */
+.detail-grid{display:grid;grid-template-columns:1.4fr .9fr;gap:22px;align-items:start}
+.info-row{display:flex;justify-content:space-between;gap:14px;padding:8px 0;font-size:13.5px;border-bottom:1px dashed var(--line)}
+.info-row:last-child{border-bottom:none}
+.info-row .lbl{color:var(--ink-soft)}
+.info-row .val{text-align:right;font-weight:600}
+.items-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.items-table th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);padding:10px 8px;border-bottom:1px solid var(--line)}
+.items-table td{padding:12px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.items-table th:last-child,.items-table td:last-child{text-align:right}
+.items-table .pname{font-weight:600}
+
+/* ===== Thành công ===== */
+.success-box{max-width:820px;margin:0 auto;text-align:center}
+.success-icon{width:78px;height:78px;border-radius:50%;background:var(--grad-cool);color:#08352b;display:flex;align-items:center;justify-content:center;font-size:38px;font-weight:700;margin:6px auto 18px;box-shadow:0 14px 34px rgba(0,184,148,.32)}
+.success-box h1{font-size:34px;margin-bottom:8px}
+.success-box > p{color:var(--ink-soft);font-size:14.5px}
+.success-codes{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0 26px}
+.order-chip{background:#F2EFFF;color:var(--violet);border-radius:999px;padding:8px 18px;font-family:'Space Grotesk';font-weight:700;letter-spacing:.03em}
+.success-card{text-align:left}
+.success-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+.success-actions .btn-primary,.success-actions .btn-secondary{min-width:220px}
+
+/* ===== Empty ===== */
+.ord-empty{text-align:center;padding:56px 24px;background:#fff;border:1px dashed var(--line-strong);border-radius:var(--r-lg)}
+.ord-empty .big{font-size:46px;margin-bottom:10px}
+.ord-empty strong{display:block;font-size:18px;font-family:'Space Grotesk';margin-bottom:6px}
+.ord-empty p{color:var(--ink-soft);font-size:14px;margin-bottom:18px}
+
+@media (max-width:980px){
+    .ord-layout,.detail-grid{grid-template-columns:1fr}
+    .ord-summary{position:static}
+    .order-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:640px){
+    .ord-wrap{padding:18px 16px 44px}
+    .ord-head h1{font-size:27px}
+    .cart-line{grid-template-columns:62px 1fr;row-gap:8px}
+    .cart-thumb{width:62px;height:62px}
+    .cart-line-total{grid-column:2;text-align:left}
+    .order-grid{grid-template-columns:1fr}
+    .items-table .hide-sm{display:none}
+}

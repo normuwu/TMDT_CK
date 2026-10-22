@@ -7,6 +7,7 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <c:set var="listUrl" value="${ctx}/KhachHang/san_pham.jsp"/>
 <c:set var="detailUrl" value="${ctx}/KhachHang/chi-tiet-san-pham"/>
+<c:set var="backPath" value="/KhachHang/san_pham.jsp${empty pageContext.request.queryString ? '' : '?'}${pageContext.request.queryString}"/>
 <c:set var="pgBase"><c:out value="${listUrl}?${baseQuery}&page="/></c:set>
 <c:set var="hasFilter" value="${not empty filter.keyword or filter.categoryId != null or filter.supplierId != null or filter.materialId != null or filter.minPrice != null or filter.maxPrice != null}"/>
 <!DOCTYPE html>
@@ -24,6 +25,7 @@
 <jsp:include page="/WEB-INF/views/common/session-info.jsp" />
 
 <div id="site-header"></div>
+<jsp:include page="/WEB-INF/views/common/cart-drawer.jsp" />
 
 <main>
     <div class="shop">
@@ -187,7 +189,16 @@
                                                 <small>${filter.materialId != null ? 'Giá' : 'Giá từ'}</small>
                                                 <strong><fmt:formatNumber value="${p.price}" groupingUsed="true"/>đ</strong>
                                             </div>
-                                            <a class="btn-primary" href="${detailUrl}?id=${p.productId}">Xem chi tiết</a>
+                                            <div class="pfoot-actions">
+                                                <form method="post" action="${ctx}/KhachHang/them-vao-gio" class="add-cart-form">
+                                                    <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}'/>">
+                                                    <input type="hidden" name="productId" value="${p.productId}">
+                                                    <input type="hidden" name="quantity" value="1">
+                                                    <input type="hidden" name="redirect" value="<c:out value='${backPath}'/>">
+                                                    <button type="submit" class="btn-add">🛒 Thêm vào giỏ</button>
+                                                </form>
+                                                <a class="btn-primary" href="${detailUrl}?id=${p.productId}">Xem chi tiết</a>
+                                            </div>
                                         </div>
                                     </div>
                                 </article>

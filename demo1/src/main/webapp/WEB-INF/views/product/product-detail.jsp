@@ -8,6 +8,7 @@
 <c:set var="listUrl" value="${ctx}/KhachHang/san_pham.jsp"/>
 <c:set var="logged" value="${not empty sessionScope.currentUser}"/>
 <c:set var="startPrice" value="${not empty product.materials ? product.materials[0].price : product.price}"/>
+<c:set var="backPath" value="/KhachHang/chi-tiet-san-pham?id=${product.productId}"/>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -25,6 +26,7 @@
 <jsp:include page="/WEB-INF/views/common/session-info.jsp" />
 
 <div id="site-header"></div>
+<jsp:include page="/WEB-INF/views/common/cart-drawer.jsp" />
 
 <main>
     <nav class="breadcrumb" aria-label="Đường dẫn">
@@ -112,13 +114,16 @@
                 <c:if test="${fn:length(product.materials) > 1}"><small>Giá thay đổi theo vật liệu</small></c:if>
             </div>
 
-            <div class="buy-box">
+            <form class="buy-box" method="post" action="${ctx}/KhachHang/them-vao-gio">
+                <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}'/>">
+                <input type="hidden" name="productId" value="${product.productId}">
+                <input type="hidden" name="redirect" value="<c:out value='${backPath}'/>">
                 <c:if test="${not empty product.materials}">
                     <span class="buy-label">Vật liệu</span>
                     <div class="material-options" role="radiogroup" aria-label="Chọn vật liệu">
                         <c:forEach items="${product.materials}" var="m" varStatus="st">
                             <label class="material-opt">
-                                <input type="radio" name="material" value="${m.materialId}"
+                                <input type="radio" name="materialId" value="${m.materialId}"
                                        data-price="${m.price}" data-name="<c:out value='${m.name}'/>"
                                        <c:if test="${st.first}">checked</c:if>>
                                 <span><c:out value="${m.name}"/><small><fmt:formatNumber value="${m.price}" groupingUsed="true"/>đ</small></span>
@@ -131,7 +136,7 @@
                 <div class="qty-row">
                     <div class="qty-box">
                         <button type="button" id="qtyMinus" aria-label="Giảm số lượng">−</button>
-                        <input type="number" id="qtyInput" value="1" min="1" max="${product.stockQuantity}" inputmode="numeric" aria-label="Số lượng">
+                        <input type="number" id="qtyInput" name="quantity" value="1" min="1" max="${product.stockQuantity}" inputmode="numeric" aria-label="Số lượng">
                         <button type="button" id="qtyPlus" aria-label="Tăng số lượng">+</button>
                     </div>
                     <c:choose>
@@ -145,13 +150,12 @@
                 <p class="subtotal">Tạm tính: <b><span id="subtotalValue">0</span>đ</b></p>
 
                 <div class="detail-actions">
-                    <button type="button" id="addToCartBtn" class="btn-primary"
-                            data-name="<c:out value='${product.name}'/>"
+                    <button type="submit" id="addToCartBtn" class="btn-primary"
                             <c:if test="${product.stockQuantity <= 0}">disabled</c:if>>Thêm vào giỏ</button>
                     <%-- Link tương đối: trang này nằm dưới /KhachHang/ cùng thư mục với dat_in_3d.jsp --%>
                     <a class="btn-secondary" href="dat_in_3d.jsp">Đặt in ngay</a>
                 </div>
-            </div>
+            </form>
 
             <div class="detail-meta">
                 <span>🚚 Xưởng xác nhận đơn trong vòng 30 phút</span>
