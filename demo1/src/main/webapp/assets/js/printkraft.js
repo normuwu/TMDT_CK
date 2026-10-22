@@ -38,7 +38,7 @@ var NAV_ITEMS=[
     {id:'studio',label:'Tự thiết kế',href:'dat_in_3d.jsp'},
     {id:'doanh-nghiep',label:'Doanh nghiệp',href:'trang_chu.jsp'},
     {id:'nhacungcap',label:'Nhà cung cấp',href:'tim-kiem-nha-cung-cap.jsp'},
-    {id:'donhang',label:'Đơn hàng',href:'don_hang_cua_toi_3d.jsp'},
+    {id:'donhang',label:'Đơn hàng',href:'lich-su-mua-hang'},
     {id:'danhgia',label:'Đánh giá',href:'danh-gia.jsp'},
     {id:'faq',label:'Hỗ trợ',href:'lien-he.jsp'}
 ];
@@ -65,7 +65,8 @@ var store={
 /* Dữ liệu lấy từ <div id="pk-session"> do WEB-INF/views/common/session-info.jsp in ra */
 var PK=(function(){
     var el=document.getElementById('pk-session'),d=el?el.dataset:{};
-    return {ctx:d.ctx||'',csrf:d.csrf||'',loggedIn:d.loggedIn==='true',name:d.name||'',role:d.role||''};
+    return {ctx:d.ctx||'',csrf:d.csrf||'',loggedIn:d.loggedIn==='true',name:d.name||'',
+        cartCount:parseInt(d.cartCount||'0',10)||0,role:d.role||''};
 })();
 function isLoggedIn(){return PK.loggedIn}
 function escHtml(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
@@ -77,7 +78,7 @@ function renderAuthArea(){
     var area=document.getElementById('authArea');if(!area)return;
     if(isLoggedIn()){
         area.innerHTML='<div style="display:flex;align-items:center;gap:8px;">'+
-            '<button class="user-chip" onclick="location.href=\'don_hang_cua_toi_3d.jsp\'"><span class="avatar">'+escHtml(initialsOf(PK.name))+'</span> '+escHtml(shortName(PK.name))+'</button>'+
+            '<button class="user-chip" onclick="location.href=\'lich-su-mua-hang\'"><span class="avatar">'+escHtml(initialsOf(PK.name))+'</span> '+escHtml(shortName(PK.name))+'</button>'+
             '<button onclick="logout()" style="font-size:12.5px;font-weight:600;color:var(--ink-soft);">Thoát</button></div>';
     } else {
         area.innerHTML='<a href="'+PK.ctx+'/login" style="font-weight:600;">Tài khoản</a>';
@@ -96,11 +97,11 @@ function openLogin(){location.href=PK.ctx+'/login'}
 /* ---------- HEADER ---------- */
 function renderHeader(active){
     var el=document.getElementById('site-header');if(!el)return;
-    el.innerHTML='<div class="utility"><span>🚚 Miễn phí thiết kế mockup cho đơn từ 20 sản phẩm — <b>Voucher 100K</b> cho đơn đầu tiên</span><span>Hỗ trợ: <b>1900 6868</b> · <a href="don_hang_cua_toi_3d.jsp">Theo dõi đơn hàng</a>'+(isLoggedIn()?'':' · <a href="'+PK.ctx+'/login">Đăng nhập</a>')+'</span></div>'+
+    el.innerHTML='<div class="utility"><span>🚚 Miễn phí thiết kế mockup cho đơn từ 20 sản phẩm — <b>Voucher 100K</b> cho đơn đầu tiên</span><span>Hỗ trợ: <b>1900 6868</b> · <a href="lich-su-mua-hang">Theo dõi đơn hàng</a>'+(isLoggedIn()?'':' · <a href="'+PK.ctx+'/login">Đăng nhập</a>')+'</span></div>'+
         '<header><a href="trang_chu.jsp" class="logo"><span class="mark"></span> PrintKraft</a><nav id="mainNav">'+
         NAV_ITEMS.map(function(i){return '<a href="'+i.href+'" class="'+(i.id===active?'active':'')+'">'+i.label+'</a>'}).join('')+
         '</nav><div class="search-wrap"><input type="text" id="globalSearch" placeholder="Tìm sản phẩm, xưởng in..."><button onclick="doGlobalSearch()">Tìm</button></div>'+
-        '<div class="head-actions"><div id="authArea"></div><button class="cart-btn" onclick="openCart()">🛒 Giỏ hàng <span class="badge" id="cartBadge">0</span></button></div></header>';
+        '<div class="head-actions"><div id="authArea"></div><button class="cart-btn" onclick="openCart()">🛒 Giỏ hàng <span class="badge" id="cartBadge">'+PK.cartCount+'</span></button></div></header>';
     var gs=document.getElementById('globalSearch');
     if(gs)gs.addEventListener('keydown',function(e){if(e.key==='Enter')doGlobalSearch()});
 }
@@ -119,16 +120,20 @@ function renderFooter(){
     el.innerHTML='<footer><div class="foot-inner">'+
         '<div><div class="logo" style="margin-bottom:16px;"><span class="mark"></span> PrintKraft</div><p style="font-size:13.5px;color:var(--ink-soft);max-width:34ch;">Nền tảng in theo yêu cầu kết nối khách hàng với hơn 120 xưởng in đối tác trên toàn quốc.</p><div style="display:flex;gap:10px;margin-top:18px;"><span class="chip" style="font-size:12px;padding:7px 14px;">Facebook</span><span class="chip" style="font-size:12px;padding:7px 14px;">Instagram</span><span class="chip" style="font-size:12px;padding:7px 14px;">Zalo</span></div></div>'+
         '<div><h5>Sản phẩm</h5><ul><li onclick="location.href=\'san_pham.jsp\'">Tất cả sản phẩm</li><li onclick="location.href=\'dat_in_3d.jsp\'">Tự thiết kế</li><li onclick="location.href=\'tim-kiem-nha-cung-cap.jsp\'">Tìm xưởng in</li><li onclick="location.href=\'trang_chu.jsp\'">Quà tặng doanh nghiệp</li></ul></div>'+
-        '<div><h5>Hỗ trợ</h5><ul><li onclick="location.href=\'lien-he.jsp\'">Trung tâm trợ giúp</li><li onclick="location.href=\'don_hang_cua_toi_3d.jsp\'">Theo dõi đơn hàng</li><li onclick="location.href=\'lien-he.jsp\'">Chính sách đổi trả</li><li onclick="location.href=\'lien-he.jsp\'">Chính sách bảo mật</li><li onclick="location.href=\'lien-he.jsp\'">Điều khoản sử dụng</li></ul></div>'+
+        '<div><h5>Hỗ trợ</h5><ul><li onclick="location.href=\'lien-he.jsp\'">Trung tâm trợ giúp</li><li onclick="location.href=\'lich-su-mua-hang\'">Theo dõi đơn hàng</li><li onclick="location.href=\'lien-he.jsp\'">Chính sách đổi trả</li><li onclick="location.href=\'lien-he.jsp\'">Chính sách bảo mật</li><li onclick="location.href=\'lien-he.jsp\'">Điều khoản sử dụng</li></ul></div>'+
         '<div><h5>Liên hệ</h5><ul><li>Hotline: 1900 6868</li><li>Email: hi@printkraft.vn</li><li>Văn phòng: 128 Nguyễn Đình Chiểu, Q.3, TP.HCM</li><li>Giờ làm việc: 8:00 – 21:00</li></ul></div>'+
         '</div><div class="foot-bottom"><span>© 2026 PrintKraft. Nền tảng in theo yêu cầu.</span><span>Điều khoản · Bảo mật · Hỗ trợ khách hàng</span></div></footer>';
 }
 
 /* ---------- MODAL / DRAWER ---------- */
 function openCart(){
+    var drawer=document.getElementById('cartDrawer');
+    /* Trang chưa nhúng fragment mini-cart thì mở trang giỏ hàng đầy đủ. */
+    if(!drawer){location.href=PK.ctx+'/KhachHang/gio-hang';return}
     closeAll();
-    document.getElementById('cartDrawer').classList.add('show');
-    document.getElementById('overlay').classList.add('show');
+    drawer.classList.add('show');
+    var ov=document.getElementById('overlay');
+    if(ov)ov.classList.add('show');
     document.body.style.overflow='hidden';
 }
 function openModalById(id){
@@ -459,13 +464,8 @@ function injectSharedUI(){
     wrap.innerHTML=
         '<div class="overlay" id="overlay" onclick="closeAll()"></div>'+
 
-        /* CART DRAWER */
-        '<aside class="drawer" id="cartDrawer"><div class="drawer-head"><h3>Giỏ hàng của bạn</h3><button onclick="closeAll()">✕</button></div><div class="drawer-body">'+
-        '<div class="cart-item"><div class="thumb" style="background:var(--grad-primary)"></div><div class="info"><strong>Áo thun Oversize Cotton</strong><span>DTG · Size L · Màu Navy</span><div class="qty"><button onclick="toast(\'Đã giảm số lượng\')">−</button><span>24</span><button onclick="toast(\'Đã tăng số lượng\')">+</button></div></div><div style="font-family:\'Space Grotesk\';font-weight:700;font-size:14px;">3.096.000đ</div></div>'+
-        '<div class="cart-item"><div class="thumb" style="background:var(--grad-warm)"></div><div class="info"><strong>Cốc sứ trắng 2 mặt</strong><span>Sublimation · 350ml</span><div class="qty"><button onclick="toast(\'Đã giảm số lượng\')">−</button><span>2</span><button onclick="toast(\'Đã tăng số lượng\')">+</button></div></div><div style="font-family:\'Space Grotesk\';font-weight:700;font-size:14px;">130.000đ</div></div>'+
-        '<div class="cart-item"><div class="thumb" style="background:var(--grad-cool)"></div><div class="info"><strong>Poster A2 giấy mỹ thuật</strong><span>In UV · 40 tờ</span><div class="qty"><button onclick="toast(\'Đã giảm số lượng\')">−</button><span>40</span><button onclick="toast(\'Đã tăng số lượng\')">+</button></div></div><div style="font-family:\'Space Grotesk\';font-weight:700;font-size:14px;">3.560.000đ</div></div>'+
-        '<div style="margin-top:20px;"><div class="field"><label>Mã giảm giá</label><input placeholder="Nhập mã..."></div><button class="btn-secondary" style="width:100%;" onclick="toastErr(\'Mã không hợp lệ hoặc đã hết hạn\')">Áp dụng mã</button></div>'+
-        '</div><div class="drawer-foot"><div class="row"><span>Tạm tính</span><span>6.786.000đ</span></div><div class="row"><span>Phí vận chuyển</span><span>Miễn phí</span></div><div class="row total"><span>Tổng cộng</span><span>6.786.000đ</span></div><button class="btn-primary" style="width:100%;" onclick="openPayment()">Tiến hành thanh toán</button></div></aside>'+
+        /* CART DRAWER: render từ session trong /WEB-INF/views/common/cart-drawer.jsp,
+           mỗi trang nhúng fragment này nên nội dung luôn khớp giỏ thật. */
 
         /* PAYMENT MODAL */
         '<div class="modal" id="paymentModal"><div class="modal-box wide"><button class="modal-close" onclick="closeAll()">✕</button><h3 id="payTitle">Thanh toán đơn hàng</h3><div class="sub" id="paySub">Hoàn tất 3 bước để đặt hàng</div>'+
@@ -481,7 +481,7 @@ function injectSharedUI(){
         '<div id="bankInfo" style="display:none;margin-top:20px;"><div class="summary-box"><div class="row"><span>Ngân hàng</span><strong>Vietcombank</strong></div><div class="row"><span>Số tài khoản</span><strong>0071 0009 8877 66</strong></div><div class="row"><span>Chủ tài khoản</span><strong>CONG TY PRINTKRAFT</strong></div><div class="row"><span>Nội dung CK</span><strong>PK-08231</strong></div></div></div>'+
         '<div style="display:flex;gap:10px;margin-top:20px;"><button class="btn-secondary" style="flex:1;" onclick="gotoPayStep(1)">← Quay lại</button><button class="btn-primary" style="flex:2;" onclick="gotoPayStep(3)">Xem lại đơn hàng</button></div></div>'+
         '<div id="payStep3" style="display:none;"><div class="summary-box"><div class="row"><span>Người nhận</span><strong id="cfName">—</strong></div><div class="row"><span>Điện thoại</span><strong id="cfPhone">—</strong></div><div class="row"><span>Địa chỉ</span><strong id="cfAddr" style="text-align:right;max-width:60%;">—</strong></div><div class="row"><span>Phương thức</span><strong id="cfMethod">—</strong></div></div><div class="summary-box"><div class="row"><span>Tạm tính (3 sản phẩm)</span><span>6.786.000đ</span></div><div class="row"><span>Phí vận chuyển</span><span>Miễn phí</span></div><div class="row"><span>Giảm giá</span><span style="color:var(--teal);font-weight:600;">-100.000đ</span></div><div class="row total"><span>Tổng thanh toán</span><span>6.686.000đ</span></div></div><label style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-soft);margin-bottom:18px;"><input type="checkbox" id="agreeTerms" style="margin-top:3px;accent-color:var(--violet);"><span>Tôi đồng ý với <a href="lien-he.jsp" style="color:var(--violet);font-weight:600;">Điều khoản dịch vụ</a> và <a href="lien-he.jsp" style="color:var(--violet);font-weight:600;">Chính sách đổi trả</a>.</span></label><div style="display:flex;gap:10px;"><button class="btn-secondary" style="flex:1;" onclick="gotoPayStep(2)">← Quay lại</button><button class="btn-primary btn-teal" style="flex:2;" onclick="confirmPayment()">🔒 Thanh toán 6.686.000đ</button></div></div>'+
-        '<div id="payStepDone" style="display:none;"><div class="success-screen"><div class="success-icon">✓</div><h3>Đặt hàng thành công!</h3><p>Cảm ơn bạn đã tin tưởng PrintKraft. Xưởng in sẽ xác nhận trong vòng 30 phút.</p><div class="order-code">#PK-08231</div><p style="font-size:13px;">Hóa đơn điện tử đã được gửi tới <b>minhanh@store.vn</b></p><div style="display:flex;gap:10px;margin-top:22px;"><button class="btn-secondary" style="flex:1;" onclick="closeAll()">Đóng</button><button class="btn-primary" style="flex:1;" onclick="closeAll();location.href=\'don_hang_cua_toi_3d.jsp\';">Theo dõi đơn</button></div></div></div>'+
+        '<div id="payStepDone" style="display:none;"><div class="success-screen"><div class="success-icon">✓</div><h3>Đặt hàng thành công!</h3><p>Cảm ơn bạn đã tin tưởng PrintKraft. Xưởng in sẽ xác nhận trong vòng 30 phút.</p><div class="order-code">#PK-08231</div><p style="font-size:13px;">Hóa đơn điện tử đã được gửi tới <b>minhanh@store.vn</b></p><div style="display:flex;gap:10px;margin-top:22px;"><button class="btn-secondary" style="flex:1;" onclick="closeAll()">Đóng</button><button class="btn-primary" style="flex:1;" onclick="closeAll();location.href=\'lich-su-mua-hang\';">Theo dõi đơn</button></div></div></div>'+
         '</div></div>'+
 
         /* ORDER ACTION MODAL */
@@ -508,7 +508,8 @@ document.addEventListener('DOMContentLoaded',function(){
     renderFooter();
     injectSharedUI();
     renderAuthArea();
-    setCartCount(getCartCount());
+    /* Badge lấy từ session thật (session-info.jsp); không dùng số demo localStorage nữa. */
+    setCartCount(PK.cartCount);
     if(document.getElementById('supplierGrid'))renderSuppliers();
     /* updatePrice() nằm trong JS riêng của trang đặt in tùy chỉnh (dat_in_3d.jsp) */
     if(document.getElementById('qtyRange')&&typeof updatePrice==='function')updatePrice();

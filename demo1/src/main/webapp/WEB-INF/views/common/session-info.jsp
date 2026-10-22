@@ -12,4 +12,5 @@
      data-csrf="<c:out value='${sessionScope.csrfToken}'/>"
      data-logged-in="${not empty sessionScope.currentUser}"
      data-name="<c:out value='${sessionScope.currentUser.fullName}'/>"
+     data-cart-count="${empty sessionScope.cart ? 0 : sessionScope.cart.itemCount}"
      data-role="<c:out value='${sessionScope.currentUser.role}'/>"></div>

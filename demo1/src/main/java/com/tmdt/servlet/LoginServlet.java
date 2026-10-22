@@ -1,5 +1,6 @@
 package com.tmdt.servlet;
 
+import com.tmdt.model.Cart;
 import com.tmdt.model.SessionUser;
 import com.tmdt.service.AuthService;
 import com.tmdt.util.ClientIpUtil;
@@ -74,9 +75,13 @@ public class LoginServlet extends HttpServlet {
                     "Tài khoản chưa được xác minh email.", true);
             case SUCCESS -> {
                 HttpSession old = request.getSession(false);
+                // Giỏ hàng khách đã chọn trước khi đăng nhập được giữ lại sang session mới;
+                // các attribute khác (kể cả csrfToken) vẫn bị hủy để chống session fixation.
+                Cart guestCart = old == null ? null : (Cart) old.getAttribute("cart");
                 if (old != null) old.invalidate();
 
                 HttpSession session = request.getSession(true);
+                if (guestCart != null) session.setAttribute("cart", guestCart);
                 session.setAttribute(SessionUser.SESSION_KEY, outcome.user());
                 // Fresh CSRF token for the new session.
                 session.setAttribute("csrfToken", TokenUtil.generateRawToken());

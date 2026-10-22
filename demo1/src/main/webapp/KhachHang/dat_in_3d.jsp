@@ -22,6 +22,7 @@
 
 <!-- Header + menu do printkraft.js vẽ (mục "Tự thiết kế" được tô sáng nhờ data-page="studio") -->
 <div id="site-header"></div>
+<jsp:include page="/WEB-INF/views/common/cart-drawer.jsp" />
 
 <main>
     <div class="page-head">
