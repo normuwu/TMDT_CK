@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var qtyInput = document.getElementById('qtyInput');
 
     function selectedMaterial() {
-        return document.querySelector('input[name="material"]:checked');
+        return document.querySelector('input[name="materialId"]:checked');
     }
     function unitPrice() {
         var r = selectedMaterial();
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (priceEl) priceEl.textContent = nf.format(unitPrice());
         if (subtotalEl) subtotalEl.textContent = nf.format(unitPrice() * qty());
     }
-    document.querySelectorAll('input[name="material"]').forEach(function (r) {
+    document.querySelectorAll('input[name="materialId"]').forEach(function (r) {
         r.addEventListener('change', refresh);
     });
 
@@ -56,17 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
         qtyInput.addEventListener('blur', function () { setQty(qty()); });
     }
 
-    /* ---------- Thêm vào giỏ (demo: tăng số trên biểu tượng giỏ) ---------- */
-    var addBtn = document.getElementById('addToCartBtn');
-    if (addBtn) {
-        addBtn.addEventListener('click', function () {
-            var n = qty();
-            var r = selectedMaterial();
-            setCartCount(getCartCount() + n);
-            var label = '"' + addBtn.dataset.name + '"' + (r ? ' (' + r.dataset.name + ')' : '');
-            toastOk('Đã thêm ' + n + ' × ' + label + ' vào giỏ hàng');
-        });
-    }
+    /* ---------- Thêm vào giỏ: form POST tới AddToCartServlet (không dùng localStorage) ---------- */
 
     /* ---------- Form đánh giá: kiểm tra sơ bộ trước khi gửi ---------- */
     document.querySelectorAll('.review-form').forEach(function (form) {

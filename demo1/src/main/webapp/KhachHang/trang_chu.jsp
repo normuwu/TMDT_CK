@@ -336,6 +336,7 @@
 <jsp:include page="/WEB-INF/views/common/session-info.jsp" />
 
 <div id="site-header"></div>
+<jsp:include page="/WEB-INF/views/common/cart-drawer.jsp" />
 
 <main>
     <div class="page">
@@ -872,13 +873,7 @@
         wrap.innerHTML=
             '<div class="overlay" id="overlay" onclick="closeAll()"></div>'+
 
-            /* CART DRAWER */
-            '<aside class="drawer" id="cartDrawer"><div class="drawer-head"><h3>Giỏ hàng của bạn</h3><button onclick="closeAll()">✕</button></div><div class="drawer-body">'+
-            '<div class="cart-item"><div class="thumb" style="background:var(--grad-primary)"></div><div class="info"><strong>Áo thun Oversize Cotton</strong><span>DTG · Size L · Màu Navy</span><div class="qty"><button onclick="toast(\'Đã giảm số lượng\')">−</button><span>24</span><button onclick="toast(\'Đã tăng số lượng\')">+</button></div></div><div style="font-family:\'Space Grotesk\';font-weight:700;font-size:14px;">3.096.000đ</div></div>'+
-            '<div class="cart-item"><div class="thumb" style="background:var(--grad-warm)"></div><div class="info"><strong>Cốc sứ trắng 2 mặt</strong><span>Sublimation · 350ml</span><div class="qty"><button onclick="toast(\'Đã giảm số lượng\')">−</button><span>2</span><button onclick="toast(\'Đã tăng số lượng\')">+</button></div></div><div style="font-family:\'Space Grotesk\';font-weight:700;font-size:14px;">130.000đ</div></div>'+
-            '<div class="cart-item"><div class="thumb" style="background:var(--grad-cool)"></div><div class="info"><strong>Poster A2 giấy mỹ thuật</strong><span>In UV · 40 tờ</span><div class="qty"><button onclick="toast(\'Đã giảm số lượng\')">−</button><span>40</span><button onclick="toast(\'Đã tăng số lượng\')">+</button></div></div><div style="font-family:\'Space Grotesk\';font-weight:700;font-size:14px;">3.560.000đ</div></div>'+
-            '<div style="margin-top:20px;"><div class="field"><label>Mã giảm giá</label><input placeholder="Nhập mã..."></div><button class="btn-secondary" style="width:100%;" onclick="toastErr(\'Mã không hợp lệ hoặc đã hết hạn\')">Áp dụng mã</button></div>'+
-            '</div><div class="drawer-foot"><div class="row"><span>Tạm tính</span><span>6.786.000đ</span></div><div class="row"><span>Phí vận chuyển</span><span>Miễn phí</span></div><div class="row total"><span>Tổng cộng</span><span>6.786.000đ</span></div><button class="btn-primary" style="width:100%;" onclick="openPayment()">Tiến hành thanh toán</button></div></aside>'+
+            /* CART DRAWER: fragment server-side /WEB-INF/views/common/cart-drawer.jsp */
 
             /* PAYMENT MODAL */
             '<div class="modal" id="paymentModal"><div class="modal-box wide"><button class="modal-close" onclick="closeAll()">✕</button><h3 id="payTitle">Thanh toán đơn hàng</h3><div class="sub" id="paySub">Hoàn tất 3 bước để đặt hàng</div>'+
@@ -921,7 +916,8 @@
         renderFooter();
         injectSharedUI();
         renderAuthArea();
-        setCartCount(getCartCount());
+        /* Badge lấy từ giỏ thật trong session (session-info.jsp), không dùng localStorage demo. */
+        setCartCount(PK.cartCount||0);
         if(document.getElementById('supplierGrid'))renderSuppliers();
         if(document.getElementById('qtyRange'))updatePrice();
         initOrderPage();
