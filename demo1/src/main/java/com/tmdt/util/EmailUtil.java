@@ -73,6 +73,7 @@ public final class EmailUtil {
                     return;
                 }
                 send(subject, toEmail, link, model, cfg);
+                LOG.info("Mail sent: '{}' to {}", subject, toEmail);
             } catch (Exception e) {
                 // Registration/reset must not fail because of mail problems.
                 LOG.error("Failed to send mail '{}' to {}", subject, toEmail, e);

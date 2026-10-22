@@ -22,6 +22,16 @@
             <url-pattern>/WEB-INF/views/common/*</url-pattern>
             <el-ignored>false</el-ignored>
         </jsp-property-group>
+        <!-- Trang sản phẩm (products.jsp, product-detail.jsp) dùng EL + JSTL (core, fmt, functions) -->
+        <jsp-property-group>
+            <url-pattern>/WEB-INF/views/product/*</url-pattern>
+            <el-ignored>false</el-ignored>
+        </jsp-property-group>
+
+        <jsp-property-group>
+            <url-pattern>/WEB-INF/views/profile/*</url-pattern>
+            <el-ignored>false</el-ignored>
+        </jsp-property-group>
     </jsp-config>
 
     <!-- Filter thứ tự được đảm bảo bởi khai báo DD (annotation không đảm bảo rung tự):
