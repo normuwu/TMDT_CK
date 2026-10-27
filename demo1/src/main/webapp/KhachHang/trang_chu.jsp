@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/site.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/trang-chu.css">
 </head>
-<body data-page="home">
-<jsp:include page="/WEB-INF/views/common/session-info.jsp" />
-
-<div id="site-header"></div>
-<jsp:include page="/WEB-INF/views/common/cart-drawer.jsp" />
+<body>
+<jsp:include page="/WEB-INF/views/common/header.jsp">
+    <jsp:param name="active" value="home"/>
+</jsp:include>
 
 <main>
     <div class="page">
@@ -24,7 +24,7 @@
                 <p>Tải thiết kế lên, chọn chất liệu và số lượng — xưởng in đối tác của chúng tôi lo phần còn lại. Từ 1 chiếc áo đến 10.000 sản phẩm.</p>
                 <div class="hero-cta">
                     <a class="btn-primary" href="dat_in_3d.jsp">Bắt đầu thiết kế</a>
-                    <a class="btn-secondary" href="dat_in_3d.jsp">Xem sản phẩm mẫu</a>
+                    <a class="btn-secondary" href="san-pham">Xem sản phẩm mẫu</a>
                 </div>
                 <div class="hero-stats">
                     <div><strong>4.9/5</strong><span>Đánh giá khách hàng</span></div>
@@ -103,8 +103,8 @@
     </div>
 </main>
 
-<div id="site-footer"></div>
+<jsp:include page="/WEB-INF/views/common/footer.jsp" />
 
-<script src="<%= request.getContextPath() %>/assets/js/trang-chu.js"></script>
+<script src="<%= request.getContextPath() %>/assets/js/site.js"></script>
 </body>
 </html>
