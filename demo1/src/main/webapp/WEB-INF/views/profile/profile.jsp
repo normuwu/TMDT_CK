@@ -64,6 +64,14 @@
             </div>
         </form>
 
+        <div style="border-top:1px solid var(--line); margin-top:24px;">
+            <h3>Trở thành Nhà cung cấp</h3>
+            <p class="sub">Bạn có xưởng in 3D? Gửi yêu cầu để Admin xét duyệt quyền Nhà cung cấp.</p>
+            <div class="actions">
+                <a class="btn auto" href="${ctx}/xin-lam-nha-cung-cap">Xin làm Nhà cung cấp</a>
+            </div>
+        </div>
+
         <form method="post" action="${ctx}/profile/password" id="password">
             <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}'/>">
             <h3>Đổi mật khẩu</h3>

@@ -239,6 +239,8 @@ function loadState(){
 }
 
 let state = loadState();
+state.suppliers = []; // NCC lấy từ API /admin/api/supplier-accounts, không dùng seed/localStorage
+
 
 function persist(message){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -458,14 +460,44 @@ function openRoleAssignment(){
   openEntityModal({title:'Gán vai trò',subtitle:'Áp dụng cho một cá nhân hoặc toàn bộ bộ phận',fields:field('Cá nhân / Bộ phận',select('target',targets,'','required'))+field('Vai trò mới',select('roleId',state.roles.map(role=>({value:role.id,label:role.name})),'','required')),submitText:'Gán vai trò',onSubmit:data=>{const [type,value]=data.get('target').split(':');const affected=type==='user'?state.users.filter(user=>user.id===value):state.users.filter(user=>user.department===value);affected.forEach(user=>user.roleId=data.get('roleId'));persist('Đã cập nhật vai trò cho '+affected.length+' tài khoản');closeAll();renderUsers();renderStaff();renderRoles();}});
 }
 
+/* ===== Tải NCC thật từ API ===== */
+async function loadSuppliers(){
+  const ctx = document.querySelector('meta[name="app-ctx"]')?.content || '';
+  try{
+    const response = await fetch(ctx + '/admin/api/supplier-accounts', {credentials:'same-origin', headers:{'Accept':'application/json'}});
+    const type = response.headers.get('content-type') || '';
+    const data = type.includes('json') ? await response.json() : null;
+    if(!response.ok || !data) throw new Error(data?.error || 'Không tải được danh sách nhà cung cấp.');
+    state.suppliers = (data.suppliers || []).map(item => ({
+      id: String(item.userId),
+      name: item.shopName,
+      taxCode: '',
+      email: item.email,
+      area: item.address || '',
+      region: '',
+      permissions: [],
+      sla: null,
+      contract: '—',
+      status: item.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'
+    }));
+    state.supplierPending = Number(data.counts?.pendingRequests || 0);
+    document.querySelectorAll('button').forEach(button => {
+      if (button.textContent.trim() === '+ Thêm NCC') button.hidden = true;
+    });
+    renderSuppliers();
+  }catch(error){
+    toast(error.message || 'Không tải được danh sách nhà cung cấp.');
+  }
+}
+
 /* ===== Supplier access ===== */
 function renderSuppliers(){
   const body=document.getElementById('suppliersTableBody');if(!body)return;
   const search=normalize(document.getElementById('supplierSearch').value),region=document.getElementById('supplierRegionFilter').value,status=document.getElementById('supplierStatusFilter').value;
   const filtered=state.suppliers.filter(supplier=>(!search||normalize([supplier.name,supplier.taxCode,supplier.area].join(' ')).includes(search))&&(!region||supplier.region===region)&&(!status||supplier.status===status));
-  body.innerHTML=filtered.length?filtered.map(supplier=>'<tr><td><strong>'+escapeHtml(supplier.name)+'</strong><div class="table-note">'+escapeHtml(supplier.taxCode)+' · '+escapeHtml(supplier.email)+'</div></td><td>'+escapeHtml(supplier.area)+'<div class="table-note">'+escapeHtml(supplier.region)+'</div></td><td>'+(supplier.permissions.length?supplier.permissions.map(permission=>'<span class="pill blue">'+escapeHtml(permission)+'</span>').join(' '):'<span class="table-note">Chưa cấp quyền</span>')+'</td><td class="num">'+supplier.sla+'%</td><td class="mono">'+escapeHtml(supplier.contract)+'</td><td>'+pill(supplier.status)+'</td><td><div class="action-menu"><button class="mini-btn" onclick="openSupplierAccessForm(\''+supplier.id+'\')">Sửa</button><button class="mini-btn" onclick="openSupplierPermissions(\''+supplier.id+'\')">Cấp quyền</button>'+(supplier.status==='Chờ duyệt'?'<button class="mini-btn success" onclick="approveSupplier(\''+supplier.id+'\')">Duyệt</button>':'<button class="mini-btn warning" onclick="toggleSupplierStatus(\''+supplier.id+'\')">'+(supplier.status==='Tạm dừng'?'Kích hoạt':'Tạm dừng')+'</button>')+'<button class="mini-btn danger" onclick="deleteSupplierAccess(\''+supplier.id+'\')">Xóa</button></div></td></tr>').join(''):emptyRow(7,'Không tìm thấy nhà cung cấp','Thử thay đổi bộ lọc.');
+  body.innerHTML=filtered.length?filtered.map(supplier=>'<tr><td><strong>'+escapeHtml(supplier.name)+'</strong><div class="table-note">'+escapeHtml(supplier.taxCode)+' · '+escapeHtml(supplier.email)+'</div></td><td>'+escapeHtml(supplier.area)+'<div class="table-note">'+escapeHtml(supplier.region)+'</div></td><td>'+(supplier.permissions.length?supplier.permissions.map(permission=>'<span class="pill blue">'+escapeHtml(permission)+'</span>').join(' '):'<span class="table-note">Chưa cấp quyền</span>')+'</td><td class="num">'+(supplier.sla==null?'—':supplier.sla+'%')+'</td><td class="mono">'+escapeHtml(supplier.contract)+'</td><td>'+pill(supplier.status)+'</td><td><span class="table-note">Duyệt/khóa tại trang Yêu cầu NCC</span></td></tr>').join(''):emptyRow(7,'Không tìm thấy nhà cung cấp','Thử thay đổi bộ lọc.');
   document.getElementById('supplierCount').textContent=state.suppliers.length;
-  document.getElementById('supplierPendingCount').textContent=state.suppliers.filter(item=>item.status==='Chờ duyệt').length;
+  document.getElementById('supplierPendingCount').textContent=state.supplierPending||0;
   document.getElementById('supplierSuspendedCount').textContent=state.suppliers.filter(item=>item.status==='Tạm dừng').length;
   document.getElementById('supplierResultCount').textContent=filtered.length+' nhà cung cấp';
 }
@@ -623,5 +655,6 @@ function downloadCsv(filename,rows){const blob=new Blob(['\uFEFF'+rows.join('\n'
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeAll();});
 document.addEventListener('DOMContentLoaded',()=>{
   refreshAll();
+  loadSuppliers();
   document.getElementById('notificationMessage')?.addEventListener('input',event=>{document.getElementById('notificationCharCount').textContent=event.target.value.length;});
 });
