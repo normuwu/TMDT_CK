@@ -44,7 +44,7 @@ public final class Views {
     //     when those screens are wired to real backend features). ---
     public static final String HOME_CUSTOMER = "/KhachHang/trang_chu.jsp";
     public static final String HOME_SELLER = "/NhaCungCap/dashBoard.jsp"; // TODO: confirm the seller dashboard target
-    public static final String HOME_ADMIN = "/Admin/dashBoard.jsp";       // TODO: confirm the admin dashboard target
+    public static final String HOME_ADMIN = "/Admin/admin.jsp";           // giao diện thống kê thật (mục #reports)
 
     /** Landing page after a successful login, by role. */
     public static String homeFor(Role role) {

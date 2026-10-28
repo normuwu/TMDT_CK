@@ -60,8 +60,7 @@
 
         <div class="foot">
             <p>Chưa có tài khoản? <a class="ln" href="${ctx}/register">Tạo tài khoản</a></p>
-            <%-- TODO: enable when the supplier registration flow is built:
-            <p>Bạn là xưởng in? <a class="ln" href="${ctx}/register-supplier">Đăng ký làm nhà cung cấp</a></p> --%>
+            <p>Bạn là xưởng in? <a class="ln" href="${ctx}/xin-lam-nha-cung-cap">Đăng ký làm nhà cung cấp</a></p>
         </div>
     </div>
 </main>
