@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <title>PrintKraft Admin - Thêm/Xóa/Cấp quyền NCC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-ctx" content="<%= request.getContextPath() %>">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin-ncc.css">
 </head>
@@ -22,10 +21,9 @@
     <div class="nav-group">
       <div class="nav-label">Vận hành</div>
       <a class="nav-item" href="admin.jsp#products"><span class="ic">🏷️</span> Sản phẩm</a>
-      <a class="nav-item" href="admin.jsp#orders"><span class="ic">📦</span> Đơn hàng</a>
+      <a class="nav-item" href="<%= request.getContextPath() %>/Admin/quan-ly-don-hang"><span class="ic">📦</span> Đơn hàng</a>
       <a class="nav-item" href="admin.jsp#suppliers"><span class="ic">🏭</span> Xưởng in đối tác</a>
       <a class="nav-item active" href="admin-ncc.jsp"><span class="ic">🏢</span> Nhà cung cấp</a>
-      <a class="nav-item" href="admin-supplier-requests.jsp"><span class="ic">📝</span> Yêu cầu NCC</a>
       <a class="nav-item" href="admin-inventory.jsp"><span class="ic">▦</span> Quản lý kho</a>
       <a class="nav-item" href="admin-contracts.jsp"><span class="ic">§</span> Hợp đồng</a>
       <a class="nav-item" href="admin.jsp#disputes"><span class="ic">⚠️</span> Tranh chấp <span style="margin-left:auto; background:var(--red); color:white; font-size:10px; padding:1px 6px; border-radius:999px;">4</span></a>

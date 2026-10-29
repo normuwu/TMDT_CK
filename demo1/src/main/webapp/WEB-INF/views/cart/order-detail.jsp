@@ -22,7 +22,7 @@
 
 <main class="ord-wrap">
     <nav class="ord-breadcrumb" aria-label="Đường dẫn">
-        <a href="${ctx}/KhachHang/lich-su-mua-hang">Lịch sử mua hàng</a><span class="sep">›</span>
+        <a href="${ctx}${backUrl}"><c:out value="${backLabel}"/></a><span class="sep">›</span>
         <span>#<c:out value="${order.orderCode}"/></span>
     </nav>
 
@@ -54,7 +54,14 @@
                     <tbody>
                     <c:forEach items="${order.items}" var="item">
                         <tr>
-                            <td class="pname"><c:out value="${item.productName}"/></td>
+                            <td class="pname">
+                                <c:out value="${item.productName}"/>
+                                <c:if test="${not isManager and order.status.code == 'COMPLETED'}">
+                                    <div>
+                                        <a class="link-btn" href="${ctx}/KhachHang/chi-tiet-san-pham?id=${item.productId}#reviews">Viết đánh giá sản phẩm</a>
+                                    </div>
+                                </c:if>
+                            </td>
                             <td class="hide-sm"><fmt:formatNumber value="${item.unitPrice}" groupingUsed="true"/>đ</td>
                             <td>${item.quantity}</td>
                             <td><fmt:formatNumber value="${item.lineTotal}" groupingUsed="true"/>đ</td>
@@ -66,6 +73,12 @@
                 <div class="sum-div"></div>
                 <div class="sum-row"><span>Tạm tính (${order.totalQuantity} sản phẩm)</span><b><fmt:formatNumber value="${order.subtotalAmount}" groupingUsed="true"/>đ</b></div>
                 <div class="sum-row"><span>Phí vận chuyển</span><b>Miễn phí</b></div>
+                <c:if test="${order.discountAmount > 0}">
+                    <div class="sum-row promo-discount-row">
+                        <span>Giảm giá khuyến mãi</span>
+                        <b>−<fmt:formatNumber value="${order.discountAmount}" groupingUsed="true"/>đ</b>
+                    </div>
+                </c:if>
                 <div class="sum-total"><span>Tổng thanh toán</span><span class="big"><fmt:formatNumber value="${order.totalAmount}" groupingUsed="true"/>đ</span></div>
                 <div class="sum-note">Đơn giá trên là giá tại thời điểm bạn đặt hàng.</div>
             </div>
@@ -106,9 +119,56 @@
                     <span class="lbl">Đơn hàng</span>
                     <span class="val"><span class="status ${order.status.css}"><c:out value="${order.status.label}"/></span></span>
                 </div>
+                <c:if test="${not empty order.cancelReason}">
+                    <div class="info-row">
+                        <span class="lbl">Lý do hủy</span>
+                        <span class="val"><c:out value="${order.cancelReason}"/></span>
+                    </div>
+                </c:if>
             </div>
 
-            <a class="btn-secondary" style="width:100%;" href="${ctx}/KhachHang/lich-su-mua-hang">← Về lịch sử mua hàng</a>
+            <c:if test="${canCancel}">
+                <div class="ord-panel">
+                    <h2><span class="ic">⚠️</span> Hủy đơn hàng</h2>
+                    <p class="sum-note" style="text-align:left;margin:0 0 12px;">
+                        Đơn đang ở trạng thái "<c:out value="${order.status.label}"/>" nên bạn có thể tự hủy.
+                        Sau khi hủy, đơn không thể chuyển sang giao hàng.
+                    </p>
+                    <form method="post" action="${ctx}/KhachHang/huy-don-hang" class="cancel-form">
+                        <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}'/>">
+                        <input type="hidden" name="orderId" value="${order.orderId}">
+                        <label class="lbl" for="cancelReason">Lý do hủy (không bắt buộc)</label>
+                        <textarea id="cancelReason" name="reason" rows="2" maxlength="300"
+                                  placeholder="VD: Muốn đổi địa chỉ nhận hàng"></textarea>
+                        <button type="submit" class="btn-secondary">Xác nhận hủy đơn</button>
+                    </form>
+                </div>
+            </c:if>
+
+            <c:if test="${not empty statusHistory}">
+                <div class="ord-panel">
+                    <h2><span class="ic">🕓</span> Lịch sử trạng thái</h2>
+                    <div class="history-list">
+                        <c:forEach items="${statusHistory}" var="h">
+                            <div class="history-item">
+                                <span class="dot"></span>
+                                <div>
+                                    <div class="history-status"><c:out value="${h.newStatusLabel}"/></div>
+                                    <div class="history-meta">
+                                        <c:out value="${h.createdAtText}"/>
+                                        <c:if test="${not empty h.changedByName}"> · <c:out value="${h.changedByName}"/></c:if>
+                                    </div>
+                                    <c:if test="${not empty h.note}">
+                                        <div class="history-note"><c:out value="${h.note}"/></div>
+                                    </c:if>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+            </c:if>
+
+            <a class="btn-secondary" style="width:100%;" href="${ctx}${backUrl}">← Về <c:out value="${backLabel}"/></a>
         </aside>
     </div>
 </main>

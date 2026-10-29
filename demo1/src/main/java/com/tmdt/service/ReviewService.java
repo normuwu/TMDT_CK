@@ -24,6 +24,8 @@ public class ReviewService {
 
     public static final String MSG_PRODUCT_OK = "Cảm ơn bạn đã đánh giá sản phẩm!";
     public static final String MSG_SUPPLIER_OK = "Cảm ơn bạn đã đánh giá nhà cung cấp!";
+    public static final String MSG_NOT_PURCHASED =
+            "Bạn chỉ có thể đánh giá sản phẩm đã mua và đã được giao hàng thành công.";
 
     private static final Logger LOG = Logger.getLogger(ReviewService.class.getName());
     private static final int MIN_COMMENT = 5;
@@ -49,6 +51,11 @@ public class ReviewService {
                 if (owner.get() == userId) {
                     conn.rollback();
                     return Outcome.fail("Bạn không thể đánh giá sản phẩm của chính mình.");
+                }
+                // Chỉ được đánh giá sản phẩm đã mua và đơn đã giao thành công.
+                if (!hasCompletedPurchase(conn, userId, productId)) {
+                    conn.rollback();
+                    return Outcome.fail(MSG_NOT_PURCHASED);
                 }
                 reviewDAO.upsertProductReview(conn, productId, userId, rating, comment);
                 reviewDAO.recalcProductRating(conn, productId);
@@ -94,6 +101,24 @@ public class ReviewService {
             LOG.log(Level.SEVERE, "Lỗi lưu đánh giá nhà cung cấp", e);
             return Outcome.fail(MSG_SYSTEM);
         }
+    }
+
+    /**
+     * Trang chi tiết sản phẩm dùng để quyết định có hiện form đánh giá hay không.
+     * Server vẫn kiểm tra lại lần nữa khi nhận POST.
+     */
+    public boolean canReviewProduct(int userId, int productId) {
+        try (Connection conn = getConnection()) {
+            return reviewDAO.hasCompletedPurchase(conn, userId, productId);
+        } catch (SQLException e) {
+            LOG.log(Level.SEVERE, "Lỗi kiểm tra điều kiện đánh giá sản phẩm", e);
+            return false;
+        }
+    }
+
+    private boolean hasCompletedPurchase(Connection conn, int userId, int productId)
+            throws SQLException {
+        return reviewDAO.hasCompletedPurchase(conn, userId, productId);
     }
 
     /** null = hợp lệ, ngược lại là thông báo lỗi tiếng Việt. */

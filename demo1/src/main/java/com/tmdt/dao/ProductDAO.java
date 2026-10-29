@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -168,7 +169,10 @@ public class ProductDAO {
         p.setSoldCount(rs.getInt("sold_count"));
         p.setAvgRating(rs.getDouble("avg_rating"));
         p.setReviewCount(rs.getInt("review_count"));
-        p.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) {
+            p.setCreatedAt(createdAt.toLocalDateTime());
+        }
         return p;
     }
 
@@ -270,6 +274,21 @@ public class ProductDAO {
             ps.setInt(3, productId);
             ps.setInt(4, quantity);
             return ps.executeUpdate() == 1;
+        }
+    }
+
+    /**
+     * Hoàn tồn kho khi đơn bị hủy (ngược lại của decreaseStock), trong transaction.
+     * sold_count không để âm.
+     */
+    public void restoreStock(Connection conn, int productId, int quantity) throws SQLException {
+        final String sql = "UPDATE products SET stock_quantity = stock_quantity + ?, "
+                + "sold_count = GREATEST(sold_count - ?, 0) WHERE product_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, quantity);
+            ps.setInt(3, productId);
+            ps.executeUpdate();
         }
     }
 

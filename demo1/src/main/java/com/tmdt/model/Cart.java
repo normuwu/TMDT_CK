@@ -33,6 +33,7 @@ public class Cart implements Serializable {
             return item.getQuantity();
         }
         existing.setName(item.getName());
+        existing.setSupplierId(item.getSupplierId());
         existing.setThumbnailUrl(item.getThumbnailUrl());
         existing.setMaterialName(item.getMaterialName());
         existing.setUnitPrice(item.getUnitPrice());

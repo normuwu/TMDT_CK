@@ -2,6 +2,7 @@ package com.tmdt.servlet;
 
 import com.tmdt.model.Cart;
 import com.tmdt.service.CartService;
+import com.tmdt.service.PromotionService;
 import com.tmdt.util.FlashUtil;
 import com.tmdt.util.Views;
 import jakarta.servlet.ServletException;
@@ -51,6 +52,13 @@ public class CartServlet extends HttpServlet {
         } else if ("clear".equals(action)) {
             cart.clear();
             FlashUtil.flashSuccess(session, "Đã xóa toàn bộ giỏ hàng.");
+        }
+
+        // Giỏ đổi -> mã khuyến mãi phải được áp dụng lại theo giá trị đơn mới.
+        if (session.getAttribute(PromotionService.SESSION_KEY) != null) {
+            session.removeAttribute(PromotionService.SESSION_KEY);
+            FlashUtil.flashSuccess(session,
+                    "Giỏ hàng đã thay đổi nên mã khuyến mãi được bỏ. Vui lòng áp dụng lại khi thanh toán.");
         }
         response.sendRedirect(request.getContextPath() + Views.CART_URL);
     }
