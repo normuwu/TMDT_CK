@@ -25,7 +25,7 @@
 
 <div class="utility">
     <span>🚚 Miễn phí thiết kế mockup cho đơn từ 20 sản phẩm — <b>Voucher 100K</b> cho đơn đầu tiên</span>
-    <span>Hỗ trợ: <b>1900 6868</b> · <a href="${kh}/don_hang_cua_toi_3d.jsp">Theo dõi đơn hàng</a><c:if test="${empty sessionScope.currentUser}"> · <a href="${ctx}/login">Đăng nhập</a></c:if></span>
+    <span>Hỗ trợ: <b>1900 6868</b> · <a href="${ctx}/KhachHang/lich-su-mua-hang">Theo dõi đơn hàng</a><c:if test="${empty sessionScope.currentUser}"> · <a href="${ctx}/login">Đăng nhập</a></c:if></span>
 </div>
 
 <header>
@@ -37,7 +37,7 @@
         <%-- TODO: khi có trang doanh nghiệp thì đổi href sang ${kh}/doanhnghiep.jsp (hiện giữ về trang chủ) --%>
         <a href="${kh}/trang_chu.jsp" class="${active == 'doanh-nghiep' ? 'active' : ''}">Doanh nghiệp</a>
         <a href="${kh}/tim-kiem-nha-cung-cap.jsp" class="${active == 'nhacungcap' ? 'active' : ''}">Nhà cung cấp</a>
-        <a href="${kh}/don_hang_cua_toi_3d.jsp" class="${active == 'donhang' ? 'active' : ''}">Đơn hàng</a>
+        <a href="${ctx}/KhachHang/lich-su-mua-hang" class="${active == 'donhang' ? 'active' : ''}">Đơn hàng</a>
         <a href="${kh}/danh-gia.jsp" class="${active == 'danhgia' ? 'active' : ''}">Đánh giá</a>
         <a href="${kh}/lien-he.jsp" class="${active == 'faq' ? 'active' : ''}">Hỗ trợ</a>
     </nav>

@@ -22,7 +22,7 @@
     <div class="nav-group">
       <div class="nav-label">Vận hành</div>
       <div class="nav-item" onclick="switchPage(this,'products')"><span class="ic">🏷️</span> Sản phẩm</div>
-      <div class="nav-item" onclick="switchPage(this,'orders')"><span class="ic">📦</span> Đơn hàng</div>
+      <a class="nav-item" href="<%= request.getContextPath() %>/Admin/quan-ly-don-hang"><span class="ic">📦</span> Đơn hàng</a>
       <div class="nav-item" onclick="switchPage(this,'suppliers')"><span class="ic">🏭</span> Xưởng in đối tác</div>
       <a class="nav-item" href="admin-ncc.jsp"><span class="ic">🏢</span> Nhà cung cấp</a>
       <a class="nav-item" href="admin-inventory.jsp"><span class="ic">▦</span> Quản lý kho</a>
@@ -354,25 +354,18 @@
         </div>
       </div>
       <!-- ============ ORDERS ============ -->
+      <%-- Danh sách đơn hàng KHÔNG còn dùng dữ liệu mẫu trong localStorage.
+           Trang quản lý thật đọc từ bảng orders qua OrderManagementServlet. --%>
       <div class="tab-content" id="page-orders">
-        <div class="section-grid">
-          <div class="metric-card"><div><div class="metric-title">Tổng đơn hàng</div><div class="metric-value num" id="orderTotalCount">0</div><div class="metric-note" id="orderTotalValue">Tổng giá trị 0đ</div></div><div class="metric-icon">📦</div></div>
-          <div class="metric-card"><div><div class="metric-title">Đang sản xuất / giao</div><div class="metric-value num" id="orderActiveCount">0</div><div class="metric-note">Đơn đang trong quá trình xử lý</div></div><div class="metric-icon green">⏱</div></div>
-          <div class="metric-card"><div><div class="metric-title">Cần xử lý</div><div class="metric-value num" id="orderIssueCount">0</div><div class="metric-note">Trễ hạn, khiếu nại hoặc hoàn/hủy</div></div><div class="metric-icon red">!</div></div>
-        </div>
-        <div class="panel">
-          <div class="panel-head">
-            <div><h3>Quản lý đơn hàng</h3><div class="panel-subtitle">Thêm, sửa, xóa và cập nhật trạng thái đơn</div></div>
-            <div class="inline-actions"><button class="btn" type="button" onclick="exportOrders()">Xuất CSV</button><button class="btn primary" type="button" onclick="openOrderForm()">+ Tạo đơn</button></div>
-          </div>
-          <div class="toolbar">
-            <input id="orderSearch" placeholder="Tìm mã đơn, khách hàng, sản phẩm" oninput="renderOrders()">
-            <select id="orderStatusFilter" onchange="renderOrders()"><option value="">Tất cả trạng thái</option><option>Đang sản xuất</option><option>Đang giao</option><option>Hoàn tất</option><option>Trễ hạn</option><option>Khiếu nại</option><option>Hoàn/Hủy</option></select>
-            <select id="orderSupplierFilter" onchange="renderOrders()"><option value="">Tất cả xưởng in</option></select>
-            <select id="orderRangeFilter" onchange="renderOrders()"><option value="">Tất cả thời gian</option><option value="7">7 ngày gần nhất</option><option value="30">30 ngày gần nhất</option></select>
-          </div>
-          <div class="table-wrap"><table><thead><tr><th>Mã đơn</th><th>Khách hàng</th><th>Xưởng in</th><th>Trạng thái</th><th>Giá trị</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead><tbody id="ordersTableBody"></tbody></table></div>
-          <div class="table-footer"><span id="orderResultCount">0 đơn hàng</span><span>Thay đổi được lưu trên trình duyệt</span></div>
+        <div class="panel" style="padding:28px;">
+          <h3>Quản lý đơn hàng</h3>
+          <p style="color:var(--muted);font-size:13.5px;line-height:1.7;max-width:70ch;margin-top:8px;">
+            Danh sách đơn hàng được đọc trực tiếp từ cơ sở dữ liệu (bảng <code>orders</code> và
+            <code>order_items</code>) nên đơn khách vừa đặt sẽ xuất hiện ngay tại đây để duyệt và
+            cập nhật trạng thái.
+          </p>
+          <a class="btn primary" style="display:inline-block;margin-top:18px;"
+             href="<%= request.getContextPath() %>/Admin/quan-ly-don-hang">Mở trang quản lý đơn hàng</a>
         </div>
       </div>
       <!-- ============ SUPPLIERS ============ -->
@@ -1142,5 +1135,12 @@
 
 <script src="admin.js"></script>
 <script src="admin-stats.js"></script>
+<script>
+    /* Tab "Đơn hàng" cũ (dữ liệu mẫu) đã được thay bằng trang quản lý thật.
+       Link/bookmark cũ dạng admin.jsp#orders được chuyển thẳng sang trang đó. */
+    if (window.location.hash === '#orders') {
+        window.location.replace('<%= request.getContextPath() %>/Admin/quan-ly-don-hang');
+    }
+</script>
 </body>
 </html>

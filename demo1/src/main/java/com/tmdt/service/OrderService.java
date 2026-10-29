@@ -2,7 +2,9 @@ package com.tmdt.service;
 
 import com.tmdt.dao.OrderDAO;
 import com.tmdt.dao.OrderItemDAO;
+import com.tmdt.dao.OrderStatusHistoryDAO;
 import com.tmdt.dao.ProductDAO;
+import com.tmdt.dao.PromotionDAO;
 import com.tmdt.model.Cart;
 import com.tmdt.model.CartItem;
 import com.tmdt.model.CartProduct;
@@ -12,6 +14,8 @@ import com.tmdt.model.OrderStatus;
 import com.tmdt.model.PaymentMethod;
 import com.tmdt.model.PaymentStatus;
 import com.tmdt.model.ProductMaterial;
+import com.tmdt.model.Promotion;
+import com.tmdt.model.SessionUser;
 import com.tmdt.util.DBConnection;
 import com.tmdt.util.ValidationUtil;
 import org.slf4j.Logger;
@@ -51,10 +55,13 @@ public class OrderService {
     private final OrderDAO orderDAO = new OrderDAO();
     private final OrderItemDAO orderItemDAO = new OrderItemDAO();
     private final ProductDAO productDAO = new ProductDAO();
+    private final PromotionDAO promotionDAO = new PromotionDAO();
+    private final PromotionService promotionService = new PromotionService();
+    private final OrderStatusHistoryDAO historyDAO = new OrderStatusHistoryDAO();
 
     public enum PlaceStatus {
         SUCCESS, VALIDATION_ERROR, EMPTY_CART, PRODUCT_UNAVAILABLE, OUT_OF_STOCK,
-        SHOP_NOT_FOUND, SYSTEM_ERROR
+        SHOP_NOT_FOUND, PROMOTION_INVALID, SYSTEM_ERROR
     }
 
     public record PlaceOutcome(PlaceStatus status, Map<String, String> fieldErrors,
@@ -69,7 +76,8 @@ public class OrderService {
     // ---------------------------------------------------------------------
 
     public PlaceOutcome placeCodOrder(int userId, Cart cart, String fullName,
-                                      String phone, String address, String note) {
+                                      String phone, String address, String note,
+                                      String promotionCode) {
         Map<String, String> errors = validateRecipient(fullName, phone, address, note);
         if (!errors.isEmpty()) {
             return new PlaceOutcome(PlaceStatus.VALIDATION_ERROR, errors,
@@ -131,6 +139,11 @@ public class OrderService {
                 List<Order> created = new ArrayList<>();
                 LocalDateTime now = LocalDateTime.now();
 
+                // Mỗi xưởng một đơn: chốt shop_id và tạm tính của từng đơn trước.
+                Map<Integer, Integer> shopIdBySupplier = new LinkedHashMap<>();
+                Map<Integer, BigDecimal> subtotalBySupplier = new LinkedHashMap<>();
+                BigDecimal cartSubtotal = BigDecimal.ZERO.setScale(2);
+
                 for (Map.Entry<Integer, List<OrderLine>> entry : bySupplier.entrySet()) {
                     Optional<Integer> shopId = orderDAO.findShopIdBySupplier(conn, entry.getKey());
                     if (shopId.isEmpty()) {
@@ -139,28 +152,83 @@ public class OrderService {
                                 "Xưởng in của sản phẩm trong giỏ chưa mở cửa hàng. Vui lòng chọn sản phẩm khác.",
                                 List.of()));
                     }
+                    shopIdBySupplier.put(entry.getKey(), shopId.get());
 
-                    List<OrderLine> lines = entry.getValue();
                     BigDecimal subtotal = BigDecimal.ZERO;
-                    for (OrderLine line : lines) {
+                    for (OrderLine line : entry.getValue()) {
                         subtotal = subtotal.add(line.unitPrice()
                                 .multiply(BigDecimal.valueOf(line.quantity())));
                     }
                     subtotal = subtotal.setScale(2, RoundingMode.HALF_UP);
+                    subtotalBySupplier.put(entry.getKey(), subtotal);
+                    cartSubtotal = cartSubtotal.add(subtotal);
+                }
+
+                // Kiểm tra lại mã khuyến mãi NGAY TRONG transaction, trên dòng promotions đã khóa.
+                Promotion promotion = null;
+                BigDecimal totalDiscount = BigDecimal.ZERO.setScale(2);
+                if (promotionCode != null && !promotionCode.isBlank()) {
+                    PromotionService.Preview preview =
+                            promotionService.validateForOrder(conn, promotionCode, cartSubtotal);
+                    if (!preview.valid()) {
+                        return rollback(conn, new PlaceOutcome(PlaceStatus.PROMOTION_INVALID, Map.of(),
+                                preview.message(), List.of()));
+                    }
+                    promotion = preview.promotion();
+                    if (promotion.getShopId() != null) {
+                        for (Integer orderShopId : shopIdBySupplier.values()) {
+                            if (orderShopId.intValue() != promotion.getShopId().intValue()) {
+                                return rollback(conn, new PlaceOutcome(PlaceStatus.PROMOTION_INVALID, Map.of(),
+                                        "Mã khuyến mãi này chỉ áp dụng cho đơn hàng của một xưởng. "
+                                                + "Vui lòng tách đơn hoặc bỏ mã.",
+                                        List.of()));
+                            }
+                        }
+                    }
+                    totalDiscount = preview.discount();
+
+                    // Tăng lượt dùng đúng 1 lần cho cả lần đặt hàng; hết lượt -> rollback toàn bộ.
+                    if (!promotionDAO.incrementUsedCount(conn, promotion.getPromotionId())) {
+                        return rollback(conn, new PlaceOutcome(PlaceStatus.PROMOTION_INVALID, Map.of(),
+                                "Mã khuyến mãi đã hết lượt sử dụng.", List.of()));
+                    }
+                }
+
+                BigDecimal allocatedDiscount = BigDecimal.ZERO.setScale(2);
+                int groupIndex = 0;
+
+                for (Map.Entry<Integer, List<OrderLine>> entry : bySupplier.entrySet()) {
+                    List<OrderLine> lines = entry.getValue();
+                    BigDecimal subtotal = subtotalBySupplier.get(entry.getKey());
+
+                    // Chia tiền giảm của cả giỏ cho từng đơn; đơn cuối nhận phần lẻ còn lại.
+                    BigDecimal discount;
+                    groupIndex++;
+                    if (promotion == null) {
+                        discount = BigDecimal.ZERO.setScale(2);
+                    } else if (groupIndex == bySupplier.size()) {
+                        discount = totalDiscount.subtract(allocatedDiscount);
+                        if (discount.signum() < 0) discount = BigDecimal.ZERO.setScale(2);
+                        if (discount.compareTo(subtotal) > 0) discount = subtotal;
+                    } else {
+                        discount = PromotionService.shareOf(totalDiscount, subtotal, cartSubtotal);
+                    }
+                    allocatedDiscount = allocatedDiscount.add(discount);
 
                     Order order = new Order();
                     order.setOrderCode(nextCode());
                     order.setUserId(userId);
-                    order.setShopId(shopId.get());
+                    order.setShopId(shopIdBySupplier.get(entry.getKey()));
                     order.setShopName(lines.get(0).product().getSupplierName());
+                    order.setPromotionId(promotion == null ? null : promotion.getPromotionId());
                     order.setRecipientName(name);
                     order.setRecipientPhone(normPhone);
                     order.setShippingAddress(shipAddress);
                     order.setNote(noteValue.isEmpty() ? null : noteValue);
                     order.setSubtotalAmount(subtotal);
                     order.setShippingFee(BigDecimal.ZERO.setScale(2));
-                    order.setDiscountAmount(BigDecimal.ZERO.setScale(2));
-                    order.setTotalAmount(subtotal); // miễn phí vận chuyển
+                    order.setDiscountAmount(discount);
+                    order.setTotalAmount(subtotal.subtract(discount)); // miễn phí vận chuyển, không âm
                     order.setStatus(OrderStatus.PENDING);
                     order.setPaymentMethod(PaymentMethod.COD);
                     order.setPaymentStatus(PaymentStatus.PENDING);
@@ -191,6 +259,10 @@ public class OrderService {
                     // COD: đơn mới → chờ xác nhận, thanh toán chưa thực hiện.
                     orderDAO.insertPayment(conn, order.getOrderId(), PaymentMethod.COD,
                             order.getTotalAmount(), PaymentStatus.PENDING);
+
+                    // Mốc đầu tiên của lịch sử trạng thái.
+                    historyDAO.insert(conn, order.getOrderId(), null, OrderStatus.PENDING,
+                            userId, "Đơn hàng được tạo");
 
                     created.add(order);
                 }
@@ -234,6 +306,26 @@ public class OrderService {
             if (order.isPresent()) {
                 order.get().setItems(orderItemDAO.findByOrderId(orderId));
             }
+            return order;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không tải được chi tiết đơn hàng", e);
+        }
+    }
+
+    /**
+     * Chi tiết đơn cho ADMIN/SELLER (trang quản lý đơn). Quyền được kiểm tra
+     * lại ở server bằng OrderStatusService.canAccessOrder:
+     *   - ADMIN  xem mọi đơn.
+     *   - SELLER chỉ xem đơn của shop mình.
+     * Không trả dữ liệu (Optional.empty) khi không có quyền.
+     */
+    public Optional<Order> detailForManagement(SessionUser actor, int orderId) {
+        try (Connection conn = DBConnection.getConnection()) {
+            Optional<Order> order = orderDAO.findById(conn, orderId, false);
+            if (order.isEmpty() || !OrderStatusService.canAccessOrder(actor, order.get())) {
+                return Optional.empty();
+            }
+            order.get().setItems(orderItemDAO.findByOrderId(conn, orderId));
             return order;
         } catch (SQLException e) {
             throw new IllegalStateException("Không tải được chi tiết đơn hàng", e);

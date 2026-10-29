@@ -209,7 +209,7 @@
             </div>
 
             <c:choose>
-                <c:when test="${logged}">
+                <c:when test="${logged and canReview}">
                     <form class="review-form" method="post" action="${ctx}/KhachHang/danh-gia-san-pham">
                         <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}'/>">
                         <input type="hidden" name="productId" value="${product.productId}">
@@ -227,6 +227,9 @@
                                   placeholder="Chất liệu, độ chi tiết, độ bền... (gửi lại sẽ cập nhật đánh giá cũ của bạn)"></textarea>
                         <button type="submit" class="btn-primary">Gửi đánh giá</button>
                     </form>
+                </c:when>
+                <c:when test="${logged}">
+                    <div class="login-hint"><c:out value="${reviewNotice}"/></div>
                 </c:when>
                 <c:otherwise>
                     <div class="login-hint"><a href="<c:out value='${loginUrl}'/>">Đăng nhập</a> để gửi đánh giá cho sản phẩm này.</div>
