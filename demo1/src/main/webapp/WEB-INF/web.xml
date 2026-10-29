@@ -32,6 +32,12 @@
             <url-pattern>/WEB-INF/views/profile/*</url-pattern>
             <el-ignored>false</el-ignored>
         </jsp-property-group>
+
+        <!-- Trang "Xin làm Nhà cung cấp" (SupplierRequestServlet forward) dùng EL + JSTL -->
+        <jsp-property-group>
+            <url-pattern>/WEB-INF/views/supplier/*</url-pattern>
+            <el-ignored>false</el-ignored>
+        </jsp-property-group>
     </jsp-config>
 
     <!-- Filter thứ tự được đảm bảo bởi khai báo DD (annotation không đảm bảo rung tự):

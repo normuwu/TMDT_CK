@@ -5,6 +5,8 @@
 <meta charset="UTF-8">
 <title>PrintKraft Admin — Vận hành hệ thống</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Trang Admin là HTML+JS thuần (el-ignored=true): contextPath truyền bằng scriptlet -->
+<meta name="app-ctx" content="<%= request.getContextPath() %>">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin.css">
 </head>
@@ -25,9 +27,10 @@
       <a class="nav-item" href="<%= request.getContextPath() %>/Admin/quan-ly-don-hang"><span class="ic">📦</span> Đơn hàng</a>
       <div class="nav-item" onclick="switchPage(this,'suppliers')"><span class="ic">🏭</span> Xưởng in đối tác</div>
       <a class="nav-item" href="admin-ncc.jsp"><span class="ic">🏢</span> Nhà cung cấp</a>
+      <a class="nav-item" href="admin-supplier-requests.jsp"><span class="ic">📝</span> Yêu cầu NCC</a>
       <a class="nav-item" href="admin-inventory.jsp"><span class="ic">▦</span> Quản lý kho</a>
       <a class="nav-item" href="admin-contracts.jsp"><span class="ic">§</span> Hợp đồng</a>
-      <div class="nav-item" onclick="switchPage(this,'disputes')"><span class="ic">⚠️</span> Tranh chấp <span style="margin-left:auto; background:var(--red); color:white; font-size:10px; padding:1px 6px; border-radius:999px;">4</span></div>
+      <div class="nav-item" onclick="switchPage(this,'disputes')"><span class="ic">⚠️</span> Tranh chấp</div>
     </div>
     <div class="nav-group">
       <div class="nav-label">Truy cập</div>
@@ -67,32 +70,32 @@
 
       <!-- ============ DASHBOARD ============ -->
       <div class="tab-content active" id="page-dashboard">
-        <div class="alert">
+        <div class="alert" id="dashAlert" hidden>
           <span>⚠️</span>
-          <span><strong>3 xưởng in</strong> đang trễ tiến độ giao hàng hơn 12 giờ so với cam kết.</span>
-          <a onclick="switchPageByName('disputes')">Xem chi tiết</a>
+          <span id="dashAlertText"></span>
+          <a onclick="switchPageByName('products')">Xem chi tiết</a>
         </div>
 
         <div class="kpi-row">
           <div class="kpi">
             <div class="label">Doanh thu hôm nay</div>
-            <div class="value num">184,2 tr</div>
-            <div class="delta up">▲ 12,4% so với hôm qua</div>
+            <div class="value num" id="dashRevenue">—</div>
+            <div class="delta" id="dashRevenueDelta"></div>
           </div>
           <div class="kpi">
-            <div class="label">Đơn hàng mới</div>
-            <div class="value num">342</div>
-            <div class="delta up">▲ 6,1%</div>
+            <div class="label">Đơn hàng mới hôm nay</div>
+            <div class="value num" id="dashOrders">—</div>
+            <div class="delta" id="dashOrdersDelta"></div>
           </div>
           <div class="kpi">
-            <div class="label">Tỉ lệ đúng hạn</div>
-            <div class="value num">94,3%</div>
-            <div class="delta down">▼ 1,8% tuần này</div>
+            <div class="label">Đơn đang xử lý</div>
+            <div class="value num" id="dashProcessing">—</div>
+            <div class="delta" id="dashProcessingNote"></div>
           </div>
           <div class="kpi">
-            <div class="label">Tranh chấp mở</div>
-            <div class="value num">4</div>
-            <div class="delta down">▲ 2 đơn mới</div>
+            <div class="label">Tỉ lệ hoàn tất (30 ngày)</div>
+            <div class="value num" id="dashCompletion">—</div>
+            <div class="delta" id="dashCompletionNote"></div>
           </div>
         </div>
 
@@ -102,42 +105,15 @@
               <h3>Doanh thu 7 ngày gần đây</h3>
               <a onclick="toast('Đã xuất báo cáo doanh thu')">Xuất báo cáo</a>
             </div>
-            <div class="chart">
-              <div class="bar" style="height:58%;"><span class="val">118tr</span><span>T2</span></div>
-              <div class="bar" style="height:72%;"><span class="val">142tr</span><span>T3</span></div>
-              <div class="bar" style="height:65%;"><span class="val">128tr</span><span>T4</span></div>
-              <div class="bar" style="height:88%;"><span class="val">171tr</span><span>T5</span></div>
-              <div class="bar" style="height:95%;"><span class="val">184tr</span><span>T6</span></div>
-              <div class="bar" style="height:78%;"><span class="val">152tr</span><span>T7</span></div>
-              <div class="bar" style="height:90%;"><span class="val">175tr</span><span>CN</span></div>
-            </div>
+            <div class="chart" id="dashChart"></div>
           </div>
 
           <div class="panel">
             <div class="panel-head">
-              <h3>Phân bổ theo sản phẩm</h3>
-              <a onclick="toast('Đã mở báo cáo chi tiết')">Chi tiết</a>
+              <h3>Cơ cấu doanh thu theo nhóm sản phẩm</h3>
+              <a onclick="switchPageByName('reports')">Chi tiết</a>
             </div>
-            <div class="list-item">
-              <div><div class="name">Mô hinh Luffy</div><div class="meta">142 đơn · 38%</div></div>
-              <div><div class="bar-bg"><div class="bar-fill" style="width:38%"></div></div></div>
-            </div>
-            <div class="list-item">
-              <div><div class="name">Mô hình Zoro</div><div class="meta">98 đơn · 26%</div></div>
-              <div><div class="bar-bg"><div class="bar-fill" style="width:26%"></div></div></div>
-            </div>
-            <div class="list-item">
-              <div><div class="name">Mô hình Mixi Gaming</div><div class="meta">62 đơn · 17%</div></div>
-              <div><div class="bar-bg"><div class="bar-fill" style="width:17%"></div></div></div>
-            </div>
-            <div class="list-item">
-              <div><div class="name">Chi tiết cơ khí</div><div class="meta">48 đơn · 12%</div></div>
-              <div><div class="bar-bg"><div class="bar-fill" style="width:12%"></div></div></div>
-            </div>
-            <div class="list-item">
-              <div><div class="name">Khác</div><div class="meta">30 đơn · 7%</div></div>
-              <div><div class="bar-bg"><div class="bar-fill" style="width:7%"></div></div></div>
-            </div>
+            <div id="dashCategories"></div>
           </div>
         </div>
 
@@ -164,48 +140,18 @@
           <div style="display:flex; flex-direction:column; gap:18px;">
             <div class="panel">
               <div class="panel-head">
-                <h3>Xưởng in hiệu suất cao</h3>
+                <h3>Xưởng in doanh thu cao</h3>
                 <a onclick="switchPageByName('suppliers')">Tất cả</a>
               </div>
-              <div class="list-item">
-                <div><div class="name">Sài Gòn Print</div><div class="meta">142 đơn tháng này</div></div>
-                <div><div class="bar-bg"><div class="bar-fill" style="width:92%"></div></div></div>
-              </div>
-              <div class="list-item">
-                <div><div class="name">Hà Nội Digital</div><div class="meta">98 đơn tháng này</div></div>
-                <div><div class="bar-bg"><div class="bar-fill" style="width:81%"></div></div></div>
-              </div>
-              <div class="list-item">
-                <div><div class="name">Đà Nẵng Xpress</div><div class="meta">76 đơn tháng này</div></div>
-                <div><div class="bar-bg"><div class="bar-fill" style="width:70%; background:var(--amber);"></div></div></div>
-              </div>
-              <div class="list-item">
-                <div><div class="name">Cần Thơ Print</div><div class="meta">54 đơn tháng này</div></div>
-                <div><div class="bar-bg"><div class="bar-fill" style="width:58%; background:var(--amber);"></div></div></div>
-              </div>
+              <div id="dashTopShops"></div>
             </div>
 
             <div class="panel">
               <div class="panel-head">
-                <h3>Tranh chấp cần xử lý</h3>
-                <a onclick="switchPageByName('disputes')">4 tất cả</a>
+                <h3>Đơn chờ xác nhận</h3>
+                <a onclick="switchPageByName('orders')">Xem tất cả</a>
               </div>
-              <div class="dispute-item" onclick="openDisputeModal('#PK-08228','Khách báo lỗi in sai màu — chờ xưởng phản hồi','Khẩn cấp')">
-                <div class="top"><span>#PK-08228</span><span class="pill red">Khẩn cấp</span></div>
-                <div class="desc">Khách báo lỗi in sai màu — chờ xưởng phản hồi</div>
-              </div>
-              <div class="dispute-item" onclick="openDisputeModal('#PK-08201','Yêu cầu hoàn tiền một phần do giao trễ','Đang xử lý')">
-                <div class="top"><span>#PK-08201</span><span class="pill amber">Đang xử lý</span></div>
-                <div class="desc">Yêu cầu hoàn tiền một phần do giao trễ</div>
-              </div>
-              <div class="dispute-item" onclick="openDisputeModal('#PK-08196','Sản phẩm không đúng chất liệu đã đặt','Đang xử lý')">
-                <div class="top"><span>#PK-08196</span><span class="pill amber">Đang xử lý</span></div>
-                <div class="desc">Sản phẩm không đúng chất liệu đã đặt</div>
-              </div>
-              <div class="dispute-item" onclick="openDisputeModal('#PK-08188','Khách khiếu nại đóng gói kém, sản phẩm bị móp','Mới')">
-                <div class="top"><span>#PK-08188</span><span class="pill blue">Mới</span></div>
-                <div class="desc">Khách khiếu nại đóng gói kém, sản phẩm bị móp</div>
-              </div>
+              <div id="dashPendingOrders"></div>
             </div>
           </div>
         </div>
@@ -337,15 +283,15 @@
           <div class="panel">
             <div class="panel-head">
               <div><h3>Danh mục sản phẩm</h3><div class="panel-subtitle">Quản lý giá bán, tồn kho và trạng thái kinh doanh</div></div>
-              <div class="inline-actions"><button class="btn" type="button" onclick="exportProducts()">Xuất CSV</button><button class="btn primary" type="button" onclick="openProductForm()">+ Thêm sản phẩm</button></div>
+              <div class="inline-actions"><button class="btn" type="button" onclick="exportProducts()">Xuất CSV</button></div>
             </div>
             <div class="toolbar">
               <input id="productSearch" placeholder="Tìm tên hoặc mã sản phẩm" oninput="renderProducts()">
               <select id="productCategoryFilter" onchange="renderProducts()"><option value="">Tất cả nhóm</option></select>
-              <select id="productStatusFilter" onchange="renderProducts()"><option value="">Tất cả trạng thái</option><option>Đang bán</option><option>Sắp hết hàng</option><option>Ngừng bán</option></select>
+              <select id="productStatusFilter" onchange="renderProducts()"><option value="">Tất cả trạng thái</option><option value="ACTIVE">Đang bán</option><option value="LOW">Sắp hết hàng</option><option value="HIDDEN">Ngừng bán</option></select>
             </div>
             <div class="table-wrap"><table><thead><tr><th>Sản phẩm</th><th>Nhóm sản phẩm</th><th>Giá bán</th><th>Tồn kho</th><th>Đã bán</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="productsTableBody"></tbody></table></div>
-            <div class="table-footer"><span id="productResultCount">0 sản phẩm</span><span>Nhóm sản phẩm dùng chung với báo cáo doanh thu</span></div>
+            <div class="table-footer"><span id="productResultCount">0 sản phẩm</span><span class="pager" id="productPager"></span></div>
           </div>
           <div class="panel">
             <div class="panel-head"><h3>Hiệu quả kinh doanh</h3><button class="btn" type="button" onclick="openProductInsight()">Phân tích</button></div>
@@ -373,114 +319,45 @@
         <div class="kpi-row">
           <div class="kpi">
             <div class="label">Tổng xưởng đối tác</div>
-            <div class="value num">120</div>
-            <div class="delta up">▲ 4 xưởng mới tháng này</div>
+            <div class="value num" id="supplierListTotal">—</div>
+            <div class="delta">Hồ sơ xưởng in trong hệ thống</div>
           </div>
           <div class="kpi">
             <div class="label">Đang hoạt động</div>
-            <div class="value num">118</div>
-            <div class="delta">2 xưởng tạm nghỉ</div>
+            <div class="value num" id="supplierListActive">—</div>
+            <div class="delta" id="supplierListInactiveNote"></div>
           </div>
           <div class="kpi">
-            <div class="label">Hiệu suất TB</div>
-            <div class="value num">91%</div>
-            <div class="delta up">▲ 3% tháng này</div>
+            <div class="label">Đánh giá trung bình</div>
+            <div class="value num" id="supplierListRating">—</div>
+            <div class="delta">Từ đánh giá thực tế của khách</div>
           </div>
           <div class="kpi">
-            <div class="label">Xưởng cần cải thiện</div>
-            <div class="value num">7</div>
-            <div class="delta down">Dưới ngưỡng 80%</div>
+            <div class="label">Sản phẩm đang bán</div>
+            <div class="value num" id="supplierListProducts">—</div>
+            <div class="delta">Tổng sản phẩm của các xưởng</div>
           </div>
         </div>
 
         <div class="panel">
           <div class="panel-head">
             <h3>Danh sách xưởng in đối tác</h3>
-            <button class="btn primary" onclick="toast('Đã mở form thêm xưởng in')">+ Thêm xưởng</button>
+            <button class="btn" type="button" onclick="exportSuppliersList()">Xuất CSV</button>
           </div>
           <div class="toolbar">
-            <input placeholder="Tìm xưởng in..." style="flex:1; min-width:180px;">
-            <select>
-              <option>Tất cả khu vực</option>
-              <option>Miền Nam</option>
-              <option>Miền Bắc</option>
-              <option>Miền Trung</option>
-            </select>
-            <select>
-              <option>Sắp xếp: Hiệu suất</option>
-              <option>Sắp xếp: Doanh thu</option>
-              <option>Sắp xếp: Số đơn</option>
+            <input id="supplierListSearch" placeholder="Tìm xưởng in..." style="flex:1; min-width:180px;" oninput="renderSuppliersList()">
+            <select id="supplierListSort" onchange="renderSuppliersList()">
+              <option value="revenue">Sắp xếp: Doanh thu 30 ngày</option>
+              <option value="orders">Sắp xếp: Số đơn 30 ngày</option>
+              <option value="rating">Sắp xếp: Đánh giá</option>
+              <option value="name">Sắp xếp: Tên A–Z</option>
             </select>
           </div>
           <table>
             <thead>
-              <tr><th>Xưởng in</th><th>Khu vực</th><th>Đơn tháng</th><th>Hiệu suất</th><th>Đánh giá</th><th>Trạng thái</th><th></th></tr>
+              <tr><th>Xưởng in</th><th>Khu vực</th><th>Đơn 30 ngày</th><th>Doanh thu 30 ngày</th><th>Đánh giá</th><th>Trạng thái</th><th></th></tr>
             </thead>
-            <tbody>
-              <tr>
-                <td><div class="supplier-cell"><span class="sq">SG</span> <strong>Sài Gòn Print</strong></div></td>
-                <td>TP.HCM</td>
-                <td class="num">142</td>
-                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:92%"></div></div></td>
-                <td class="num">4,9 ★</td>
-                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
-                <td><span class="action-link" onclick="openSupplierModal('Sài Gòn Print','TP.HCM',142,'92%','4.9')">Chi tiết</span></td>
-              </tr>
-              <tr>
-                <td><div class="supplier-cell"><span class="sq">HN</span> <strong>Hà Nội Digital</strong></div></td>
-                <td>Hà Nội</td>
-                <td class="num">98</td>
-                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:81%"></div></div></td>
-                <td class="num">4,7 ★</td>
-                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
-                <td><span class="action-link" onclick="openSupplierModal('Hà Nội Digital','Hà Nội',98,'81%','4.7')">Chi tiết</span></td>
-              </tr>
-              <tr>
-                <td><div class="supplier-cell"><span class="sq">DN</span> <strong>Đà Nẵng Xpress</strong></div></td>
-                <td>Đà Nẵng</td>
-                <td class="num">76</td>
-                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:70%; background:var(--amber);"></div></div></td>
-                <td class="num">4,5 ★</td>
-                <td><span class="pill amber"><span class="dot"></span>Cần cải thiện</span></td>
-                <td><span class="action-link" onclick="openSupplierModal('Đà Nẵng Xpress','Đà Nẵng',76,'70%','4.5')">Chi tiết</span></td>
-              </tr>
-              <tr>
-                <td><div class="supplier-cell"><span class="sq">CT</span> <strong>Cần Thơ Print</strong></div></td>
-                <td>Cần Thơ</td>
-                <td class="num">54</td>
-                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:58%; background:var(--amber);"></div></div></td>
-                <td class="num">4,3 ★</td>
-                <td><span class="pill amber"><span class="dot"></span>Cần cải thiện</span></td>
-                <td><span class="action-link" onclick="openSupplierModal('Cần Thơ Print','Cần Thơ',54,'58%','4.3')">Chi tiết</span></td>
-              </tr>
-              <tr>
-                <td><div class="supplier-cell"><span class="sq">HP</span> <strong>Hải Phòng In Ấn</strong></div></td>
-                <td>Hải Phòng</td>
-                <td class="num">38</td>
-                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:64%; background:var(--amber);"></div></div></td>
-                <td class="num">4,4 ★</td>
-                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
-                <td><span class="action-link" onclick="openSupplierModal('Hải Phòng In Ấn','Hải Phòng',38,'64%','4.4')">Chi tiết</span></td>
-              </tr>
-              <tr>
-                <td><div class="supplier-cell"><span class="sq">BD</span> <strong>Bình Dương Print Pro</strong></div></td>
-                <td>Bình Dương</td>
-                <td class="num">31</td>
-                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:88%"></div></div></td>
-                <td class="num">4,8 ★</td>
-                <td><span class="pill green"><span class="dot"></span>Hoạt động</span></td>
-                <td><span class="action-link" onclick="openSupplierModal('Bình Dương Print Pro','Bình Dương',31,'88%','4.8')">Chi tiết</span></td>
-              </tr>
-              <tr>
-                <td><div class="supplier-cell"><span class="sq">NT</span> <strong>Nha Trang In Nhanh</strong></div></td>
-                <td>Khánh Hòa</td>
-                <td class="num">22</td>
-                <td><div class="bar-bg" style="width:80px;"><div class="bar-fill" style="width:52%; background:var(--red);"></div></div></td>
-                <td class="num">4,1 ★</td>
-                <td><span class="pill red"><span class="dot"></span>Tạm nghỉ</span></td>
-                <td><span class="action-link" onclick="openSupplierModal('Nha Trang In Nhanh','Khánh Hòa',22,'52%','4.1')">Chi tiết</span></td>
-              </tr>
-            </tbody>
+            <tbody id="suppliersListBody"></tbody>
           </table>
         </div>
       </div>
@@ -1134,6 +1011,7 @@
 <div class="toast" id="toast">Đã thực hiện</div>
 
 <script src="admin.js"></script>
+<script src="admin-live.js"></script>
 <script src="admin-stats.js"></script>
 <script>
     /* Tab "Đơn hàng" cũ (dữ liệu mẫu) đã được thay bằng trang quản lý thật.
