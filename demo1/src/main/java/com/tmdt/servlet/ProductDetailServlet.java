@@ -1,7 +1,10 @@
 package com.tmdt.servlet;
 
 import com.tmdt.model.ProductDetail;
+import com.tmdt.model.SessionUser;
 import com.tmdt.service.ProductDetailService;
+import com.tmdt.service.ReviewService;
+import com.tmdt.util.AuthUtil;
 import com.tmdt.util.FlashUtil;
 import com.tmdt.util.Views;
 import jakarta.servlet.ServletException;
@@ -23,6 +26,7 @@ import java.util.Optional;
 public class ProductDetailServlet extends HttpServlet {
 
     private final ProductDetailService detailService = new ProductDetailService();
+    private final ReviewService reviewService = new ReviewService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -46,6 +50,16 @@ public class ProductDetailServlet extends HttpServlet {
         if (found.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Sản phẩm không tồn tại hoặc đã ngừng bán.");
             return;
+        }
+
+        // Chỉ hiện form đánh giá khi tài khoản đã mua + đơn đã giao thành công.
+        // Server kiểm tra lại lần nữa trong ReviewService khi nhận POST.
+        SessionUser user = AuthUtil.currentUser(request);
+        boolean canReview = user != null
+                && reviewService.canReviewProduct(user.getUserId(), id);
+        request.setAttribute("canReview", canReview);
+        if (user != null && !canReview) {
+            request.setAttribute("reviewNotice", ReviewService.MSG_NOT_PURCHASED);
         }
 
         String back = Views.PRODUCT_DETAIL_URL + "?id=" + id;

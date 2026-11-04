@@ -59,6 +59,7 @@ public class CartService {
             int wanted = Math.min(quantity, product.getStockQuantity());
             CartItem item = new CartItem();
             item.setProductId(product.getProductId());
+            item.setSupplierId(product.getSupplierId());
             item.setMaterialId(materialId);
             item.setMaterialName(materialName);
             item.setName(product.getName());

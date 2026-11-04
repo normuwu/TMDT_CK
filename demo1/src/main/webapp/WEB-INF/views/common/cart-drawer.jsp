@@ -28,7 +28,7 @@
                         Giỏ hàng đang trống
                     </strong>
                     <p style="font-size:13.5px;">Thêm sản phẩm in 3D vào giỏ để bắt đầu đặt hàng.</p>
-                    <a class="btn-primary" style="margin-top:18px;" href="${ctx}/KhachHang/san_pham.jsp">Xem sản phẩm</a>
+                    <a class="btn-primary" style="margin-top:18px;" href="${ctx}/KhachHang/san-pham">Xem sản phẩm</a>
                 </div>
             </c:when>
             <c:otherwise>

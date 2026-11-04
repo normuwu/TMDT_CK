@@ -17,6 +17,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${ctx}/assets/css/printkraft.css">
     <link rel="stylesheet" href="${ctx}/assets/css/order.css">
+    <style>
+        /* Sửa lỗi nút .btn-secondary chiếm 100% chiều rộng làm ép nhỏ ô nhập mã khuyến mãi */
+        .promo-box .promo-form {
+            display: flex !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
+        .promo-box .promo-form input[type="text"] {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            width: auto !important;
+            padding: 9px 12px !important;
+            border: 1.5px solid var(--line-strong, #d0d5dd) !important;
+            border-radius: 8px !important;
+            font-size: 13.5px !important;
+            background: #fff !important;
+            color: var(--ink, #1e2430) !important;
+        }
+        .promo-box .promo-form button.btn-secondary {
+            flex: 0 0 auto !important;
+            width: auto !important;
+            white-space: nowrap !important;
+            padding: 9px 16px !important;
+            margin: 0 !important;
+        }
+    </style>
 </head>
 <body data-page="san-pham" data-search="san_pham.jsp">
 <jsp:include page="/WEB-INF/views/common/session-info.jsp" />
@@ -148,8 +175,52 @@
             <div class="sum-row"><span>Số sản phẩm</span><b>${cart.itemCount}</b></div>
             <div class="sum-row"><span>Tạm tính</span><b><fmt:formatNumber value="${cart.total}" groupingUsed="true"/>đ</b></div>
             <div class="sum-row"><span>Phí vận chuyển</span><b>Miễn phí</b></div>
+
+            <%-- ---------- Mã khuyến mãi (form riêng, không lồng trong form thanh toán) ---------- --%>
+            <div class="promo-box">
+                <c:choose>
+                    <c:when test="${not empty promoCode}">
+                        <div class="promo-applied">
+                            <div>
+                                <strong><c:out value="${promoCode}"/></strong>
+                                <c:if test="${not empty promoName}"> — <c:out value="${promoName}"/></c:if>
+                                <div class="promo-note">
+                                    <c:out value="${promoLabel}"/> · đã giảm
+                                    <b><fmt:formatNumber value="${promoDiscount}" groupingUsed="true"/>đ</b>
+                                </div>
+                            </div>
+                            <form method="post" action="${ctx}/KhachHang/khuyen-mai">
+                                <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}'/>">
+                                <input type="hidden" name="action" value="remove">
+                                <button type="submit" class="link-btn">Bỏ mã</button>
+                            </form>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <form method="post" action="${ctx}/KhachHang/khuyen-mai" class="promo-form">
+                            <input type="hidden" name="csrfToken" value="<c:out value='${csrfToken}'/>">
+                            <input type="hidden" name="action" value="apply">
+                            <input type="text" name="code" maxlength="50" placeholder="Nhập mã khuyến mãi"
+                                   aria-label="Mã khuyến mãi" autocomplete="off">
+                            <button type="submit" class="btn-secondary">Áp dụng</button>
+                        </form>
+                    </c:otherwise>
+                </c:choose>
+
+                <c:if test="${not empty promoError}">
+                    <div class="alert err" role="alert"><c:out value="${promoError}"/></div>
+                </c:if>
+                <div class="promo-hint">Mỗi đơn chỉ áp dụng một mã. Mã được kiểm tra lại khi bạn bấm Đặt hàng.</div>
+            </div>
+
+            <c:if test="${promoDiscount > 0}">
+                <div class="sum-row promo-discount-row">
+                    <span>Giảm giá (<c:out value="${promoCode}"/>)</span>
+                    <b>−<fmt:formatNumber value="${promoDiscount}" groupingUsed="true"/>đ</b>
+                </div>
+            </c:if>
             <div class="sum-div"></div>
-            <div class="sum-total"><span>Tổng thanh toán</span><span class="big"><fmt:formatNumber value="${cart.total}" groupingUsed="true"/>đ</span></div>
+            <div class="sum-total"><span>Tổng thanh toán</span><span class="big"><fmt:formatNumber value="${payableTotal}" groupingUsed="true"/>đ</span></div>
             <div class="sum-note">Số tiền cuối cùng được tính lại trên server khi đặt hàng.</div>
         </aside>
     </div>

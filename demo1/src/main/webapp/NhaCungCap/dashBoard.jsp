@@ -315,6 +315,7 @@ button{font-family:inherit; cursor:pointer;}
   <a href="#" onclick="return false;" title="Chưa có trang">Kiểm tra chất lượng</a>
   <a href="#" onclick="return false;" title="Chưa có trang">Lịch ca</a>
   <a href="Quan_ly_doanh_thu.jsp">💰 Doanh thu</a>
+  <a href="thong-ke-doanh-thu.jsp">📊 Thống kê doanh thu</a>
   <a href="#" onclick="return false;" title="Chưa có trang">🛍️ Mẫu bán sẵn</a>
   <a href="xu_ly_tra_hang_hoan_tien_xuong.jsp">🎧 Hỗ trợ &amp; Đổi trả</a>
 </div>

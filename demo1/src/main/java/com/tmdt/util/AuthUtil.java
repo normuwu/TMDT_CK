@@ -1,5 +1,6 @@
 package com.tmdt.util;
 
+import com.tmdt.model.Role;
 import com.tmdt.model.SessionUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,6 +25,28 @@ public final class AuthUtil {
         return session == null
                 ? null
                 : (SessionUser) session.getAttribute(SessionUser.SESSION_KEY);
+    }
+
+    /**
+     * Như {@link #requireLogin} nhưng còn kiểm tra vai trò (lấy từ session).
+     * Sai vai trò → 403, không lộ nội dung trang.
+     *
+     * @return true nếu đã redirect/sendError (caller phải return ngay)
+     */
+    public static boolean requireRole(HttpServletRequest request, HttpServletResponse response,
+                                      String target, Role... allowed) throws IOException {
+        if (requireLogin(request, response, target)) {
+            return true;
+        }
+        SessionUser user = currentUser(request);
+        for (Role role : allowed) {
+            if (user.getRole() == role) {
+                return false;
+            }
+        }
+        response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                "Bạn không có quyền truy cập trang này.");
+        return true;
     }
 
     /**

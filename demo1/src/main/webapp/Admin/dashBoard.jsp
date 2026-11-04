@@ -513,7 +513,7 @@ tbody tr:hover{background:#FAFBFD;}
     <div class="nav-group">
       <div class="nav-label">Vận hành</div>
       <a class="nav-item" href="admin.jsp#products"><span class="ic">🏷️</span> Sản phẩm</a>
-      <a class="nav-item" href="admin.jsp#orders"><span class="ic">📦</span> Đơn hàng</a>
+      <a class="nav-item" href="<%= request.getContextPath() %>/Admin/quan-ly-don-hang"><span class="ic">📦</span> Đơn hàng</a>
       <a class="nav-item" href="admin.jsp#suppliers"><span class="ic">🏭</span> Xưởng in đối tác</a>
       <a class="nav-item" href="admin-ncc.jsp"><span class="ic">🏢</span> Nhà cung cấp</a>
       <a class="nav-item" href="admin-inventory.jsp"><span class="ic">▦</span> Quản lý kho</a>
@@ -635,8 +635,8 @@ tbody tr:hover{background:#FAFBFD;}
         <div class="cols">
           <div class="panel">
             <div class="panel-head">
-              <h3>Đơn hàng gần đây</h3>
-              <a href="admin.jsp#orders">Xem tất cả</a>
+              <h3>Đơn hàng gần đây <span style="font-size:11px;font-weight:500;color:var(--muted);">(số liệu minh họa)</span></h3>
+              <a href="<%= request.getContextPath() %>/Admin/quan-ly-don-hang">Xem tất cả</a>
             </div>
             <div class="tabs">
               <div class="tab active" onclick="pickTab(this)">Tất cả</div>

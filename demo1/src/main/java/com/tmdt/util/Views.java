@@ -26,6 +26,7 @@ public final class Views {
     public static final String ORDER_SUCCESS = "/WEB-INF/views/cart/success.jsp";
     public static final String ORDER_HISTORY = "/WEB-INF/views/cart/history.jsp";
     public static final String ORDER_DETAIL = "/WEB-INF/views/cart/order-detail.jsp";
+    public static final String ADMIN_ORDER_LIST = "/WEB-INF/views/admin/order-management.jsp";
 
     public static final String CART_URL = "/KhachHang/gio-hang";
     public static final String ADD_TO_CART_URL = "/KhachHang/them-vao-gio";
@@ -33,6 +34,9 @@ public final class Views {
     public static final String ORDER_SUCCESS_URL = "/KhachHang/dat-hang-thanh-cong";
     public static final String ORDER_HISTORY_URL = "/KhachHang/lich-su-mua-hang";
     public static final String ORDER_DETAIL_URL = "/KhachHang/chi-tiet-don-hang";
+    public static final String PROMOTION_URL = "/KhachHang/khuyen-mai";
+    public static final String CANCEL_ORDER_URL = "/KhachHang/huy-don-hang";
+    public static final String ADMIN_ORDER_LIST_URL = "/Admin/quan-ly-don-hang";
     // --- Browser-facing URLs (context path prepended by the caller) ---
     public static final String LOGIN_URL = "/login";
     public static final String REGISTER_URL = "/register";
