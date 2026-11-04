@@ -87,7 +87,14 @@ public class UserDAO {
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, user.getEmail());
-            ps.setString(2, user.getPasswordHash());
+
+            // Xử lý an toàn: Nếu không có mật khẩu (từ Google), đặt NULL vào DB
+            if (user.getPasswordHash() == null || user.getPasswordHash().isBlank()) {
+                ps.setNull(2, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(2, user.getPasswordHash());
+            }
+
             ps.setString(3, user.getFullName());
             if (user.getPhone() == null || user.getPhone().isBlank()) {
                 ps.setNull(4, java.sql.Types.VARCHAR);

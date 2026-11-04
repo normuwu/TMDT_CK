@@ -1,8 +1,10 @@
 package com.tmdt.dao;
 
+import com.tmdt.model.CartProduct;
 import com.tmdt.model.PageResult;
 import com.tmdt.model.Product;
 import com.tmdt.model.ProductFilter;
+import com.tmdt.model.ProductMaterial;
 import com.tmdt.model.ProductSort;
 
 import java.sql.Connection;
@@ -10,10 +12,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.tmdt.util.DBConnection.getConnection;
 
@@ -166,6 +170,118 @@ public class ProductDAO {
         p.setReviewCount(rs.getInt("review_count"));
         p.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         return p;
+    }
+
+    // ---------------------------------------------------------------------
+    // Giỏ hàng / đặt hàng
+    // ---------------------------------------------------------------------
+
+    private static final String CART_PRODUCT_COLUMNS =
+            "SELECT p.product_id, p.supplier_id, s.shop_name, p.name, p.thumbnail_url, "
+                    + "p.price, p.stock_quantity "
+                    + "FROM products p JOIN supplier_profiles s ON s.supplier_id = p.supplier_id "
+                    + "WHERE p.product_id = ? AND p.status = 'ACTIVE' AND s.status = 'ACTIVE'";
+
+    /** Sản phẩm đang bán (giá + tồn kho) để thêm vào giỏ; empty nếu ẩn/không tồn tại. */
+    public Optional<CartProduct> findCartProduct(int productId) throws SQLException {
+        try (Connection conn = getConnection()) {
+            return findCartProduct(conn, productId, false);
+        }
+    }
+
+    /**
+     * Bản dùng trong transaction đặt hàng: forUpdate=true sẽ khóa dòng sản phẩm
+     * (SELECT ... FOR UPDATE) để hai đơn đồng thời không mua vượt tồn kho.
+     */
+    public Optional<CartProduct> findCartProduct(Connection conn, int productId, boolean forUpdate)
+            throws SQLException {
+        String sql = CART_PRODUCT_COLUMNS + (forUpdate ? " FOR UPDATE" : "");
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.of(mapCartProduct(rs)) : Optional.empty();
+            }
+        }
+    }
+
+    /** Khóa toàn bộ sản phẩm trong giỏ bằng một truy vấn (thứ tự id tăng dần, tránh deadlock). */
+    public List<CartProduct> findCartProductsForUpdate(Connection conn, Collection<Integer> productIds)
+            throws SQLException {
+        if (productIds == null || productIds.isEmpty()) return List.of();
+
+        List<Integer> ids = new ArrayList<>(productIds);
+        Collections.sort(ids);
+        String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+        String sql = "SELECT p.product_id, p.supplier_id, s.shop_name, p.name, p.thumbnail_url, "
+                + "p.price, p.stock_quantity "
+                + "FROM products p JOIN supplier_profiles s ON s.supplier_id = p.supplier_id "
+                + "WHERE p.product_id IN (" + placeholders + ")"
+                + " AND p.status = 'ACTIVE' AND s.status = 'ACTIVE' ORDER BY p.product_id FOR UPDATE";
+
+        List<CartProduct> list = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (int i = 0; i < ids.size(); i++) {
+                ps.setInt(i + 1, ids.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapCartProduct(rs));
+                }
+            }
+        }
+        return list;
+    }
+
+    /** Giá của một vật liệu thuộc sản phẩm; empty nếu vật liệu không gắn với sản phẩm/đang ẩn. */
+    public Optional<ProductMaterial> findMaterial(int productId, int materialId) throws SQLException {
+        try (Connection conn = getConnection()) {
+            return findMaterial(conn, productId, materialId, false);
+        }
+    }
+
+    public Optional<ProductMaterial> findMaterial(Connection conn, int productId, int materialId,
+                                                  boolean forUpdate) throws SQLException {
+        String sql = "SELECT m.material_id, m.name, pm.price FROM product_materials pm "
+                + "JOIN materials m ON m.material_id = pm.material_id "
+                + "WHERE pm.product_id = ? AND pm.material_id = ? AND m.is_active = TRUE"
+                + (forUpdate ? " FOR UPDATE" : "");
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            ps.setInt(2, materialId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(new ProductMaterial(rs.getInt("material_id"),
+                        rs.getString("name"), rs.getLong("price")));
+            }
+        }
+    }
+
+    /**
+     * Trừ tồn kho an toàn trong transaction: chỉ cập nhật khi còn đủ hàng.
+     * @return true nếu đã trừ được đúng 1 dòng (đủ tồn kho)
+     */
+    public boolean decreaseStock(Connection conn, int productId, int quantity) throws SQLException {
+        final String sql = "UPDATE products SET stock_quantity = stock_quantity - ?, "
+                + "sold_count = sold_count + ? "
+                + "WHERE product_id = ? AND stock_quantity >= ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, quantity);
+            ps.setInt(3, productId);
+            ps.setInt(4, quantity);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+    private CartProduct mapCartProduct(ResultSet rs) throws SQLException {
+        return new CartProduct(
+                rs.getInt("product_id"),
+                rs.getInt("supplier_id"),
+                rs.getString("shop_name"),
+                rs.getString("name"),
+                rs.getString("thumbnail_url"),
+                rs.getLong("price"),
+                rs.getInt("stock_quantity"));
     }
 
     /** Một truy vấn cho cả trang: lấy tên các vật liệu của những sản phẩm vừa tìm được. */
