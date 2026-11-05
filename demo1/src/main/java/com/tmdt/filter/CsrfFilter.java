@@ -16,9 +16,9 @@ import java.io.IOException;
  * CSRF protection. Creates the session token lazily (JSPs read ${csrfToken}).
  * Every POST must carry the same token; mismatch -> 403 with a generic
  * Vietnamese message. Comparison is constant-time.
+ *
  * <p>
- * Static resources are skipped so plain asset requests never create sessions:
- * /assets/*, /img/* and the legacy demo folders are excluded here.
+ * Static resources and external authentication callbacks (/google-login) are skipped.
  * Ordering is declared in web.xml (after EncodingFilter, before AuthFilter).
  */
 public class CsrfFilter implements Filter {
@@ -36,11 +36,18 @@ public class CsrfFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) res;
         String path = request.getRequestURI().substring(request.getContextPath().length());
 
+        // Skip static resources
         for (String skip : SKIP_PREFIXES) {
             if (path.startsWith(skip)) {
                 chain.doFilter(req, res);
                 return;
             }
+        }
+
+        // Skip CSRF validation for Google Login callback
+        if ("/google-login".equals(path)) {
+            chain.doFilter(req, res);
+            return;
         }
 
         HttpSession session = request.getSession(true);
