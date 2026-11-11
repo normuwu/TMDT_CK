@@ -11,7 +11,7 @@
       </jsp:include>
 
   Giá trị active (mục menu được tô sáng):
-      home | san-pham | studio | doanh-nghiep | nhacungcap | donhang | trahang | danhgia | faq
+      home | san-pham | studio | doanh-nghiep | nhacungcap | donhang | danhgia | faq
   Trang không nằm trong menu thì bỏ qua tham số này.
 
   Tất cả link dùng đường dẫn tuyệt đối theo context path, nên đặt trang ở thư mục nào cũng đúng.

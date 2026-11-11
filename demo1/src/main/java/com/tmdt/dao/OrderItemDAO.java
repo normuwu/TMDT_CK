@@ -36,12 +36,18 @@ public class OrderItemDAO {
 
     /** Các sản phẩm của một đơn, giữ nguyên giá lúc mua. */
     public List<OrderItem> findByOrderId(int orderId) throws SQLException {
+        try (Connection conn = getConnection()) {
+            return findByOrderId(conn, orderId);
+        }
+    }
+
+    /** Bản dùng trong transaction (ví dụ: hoàn kho khi hủy đơn). */
+    public List<OrderItem> findByOrderId(Connection conn, int orderId) throws SQLException {
         final String sql = "SELECT order_item_id, product_id, product_name_snapshot, "
                 + "unit_price, quantity, line_total "
                 + "FROM order_items WHERE order_id = ? ORDER BY order_item_id";
         List<OrderItem> items = new ArrayList<>();
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, orderId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {

@@ -62,6 +62,24 @@ public class ReviewDAO {
     // Kiểm tra tồn tại + chủ sở hữu (transaction-aware)
     // ---------------------------------------------------------------------
 
+    /**
+     * Người dùng đã thực sự mua sản phẩm này trong một đơn ĐÃ GIAO THÀNH CÔNG chưa?
+     * Điều kiện đánh giá nằm ở server, không tin dữ liệu từ trình duyệt.
+     */
+    public boolean hasCompletedPurchase(Connection conn, int userId, int productId) throws SQLException {
+        final String sql = "SELECT 1 FROM orders o "
+                + "JOIN order_items oi ON oi.order_id = o.order_id "
+                + "WHERE o.user_id = ? AND oi.product_id = ? AND o.order_status = 'COMPLETED' "
+                + "LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
     /** user_id của chủ nhà cung cấp bán sản phẩm này; empty nếu sản phẩm không tồn tại / đang ẩn. */
     public Optional<Integer> findProductOwnerUserId(Connection conn, int productId) throws SQLException {
         return firstInt(conn, "SELECT s.user_id FROM products p "

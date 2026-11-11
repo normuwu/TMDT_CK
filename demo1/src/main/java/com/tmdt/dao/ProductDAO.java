@@ -13,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -24,7 +25,7 @@ import java.util.Set;
 import static com.tmdt.util.DBConnection.getConnection;
 
 /**
- * Pure JDBC cho sản phẩm: lọc + sắp xếp + phân trang, và các truy vấn phục vụ giỏ hàng / đặt hàng.
+ * Pure JDBC cho danh sách sản phẩm: lọc + sắp xếp + phân trang.
  * Giá trị người dùng luôn đi qua PreparedStatement; phần ORDER BY chỉ lấy
  * từ enum ProductSort (không bao giờ ghép chuỗi người dùng vào SQL).
  */
@@ -80,120 +81,6 @@ public class ProductDAO {
             return new PageResult<>(products, page, pageSize, total);
         }
     }
-    // San pham moi nhat
-    public List<Product> findNewest(int limit) throws SQLException {
-        return findTop("p.created_at DESC, p.product_id DESC", limit);
-    }
-
-    // San pham ban chay
-    public List<Product> findBestSelling(int limit) throws SQLException {
-        return findTop("p.sold_count DESC, p.product_id DESC", limit);
-    }
-
-    // Lay N san pham theo thu tu cho truoc (orderBy chi nhan hang so noi bo)
-    private List<Product> findTop(String orderBy, int limit) throws SQLException {
-        String sql = SELECT_COLUMNS + "p.price AS display_price"
-                + " FROM products p"
-                + " JOIN supplier_profiles s ON s.supplier_id = p.supplier_id"
-                + " JOIN categories c ON c.category_id = p.category_id"
-                + " WHERE p.status = 'ACTIVE' AND s.status = 'ACTIVE' AND c.is_active = TRUE"
-                + " ORDER BY " + orderBy + " LIMIT ?";
-        try (Connection conn = getConnection()) {
-            List<Product> products = new ArrayList<>();
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, limit);
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) products.add(mapRow(rs));
-                }
-            }
-            loadMaterialNames(conn, products);
-            return products;
-        }
-    }
-    // ---------------------------------------------------------------------
-    // Giỏ hàng / đặt hàng
-    // ---------------------------------------------------------------------
-
-    /** Sản phẩm ACTIVE (đọc thường, không khóa) dùng cho giỏ hàng. */
-    public Optional<CartProduct> findCartProduct(int productId) throws SQLException {
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(CART_COLUMNS + "AND p.product_id = ?")) {
-            ps.setInt(1, productId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? Optional.of(mapCartProduct(rs)) : Optional.empty();
-            }
-        }
-    }
-
-    /** Vật liệu của sản phẩm (đọc thường) — dùng khi thêm vào giỏ. */
-    public Optional<ProductMaterial> findMaterial(int productId, int materialId) throws SQLException {
-        try (Connection conn = getConnection()) {
-            return findMaterial(conn, productId, materialId, false);
-        }
-    }
-
-    /**
-     * Vật liệu của sản phẩm trên connection có sẵn (trong transaction).
-     * forUpdate = true thì khóa dòng để giá không đổi giữa lúc kiểm tra và lúc ghi đơn.
-     */
-    public Optional<ProductMaterial> findMaterial(Connection conn, int productId, int materialId,
-                                                  boolean forUpdate) throws SQLException {
-        String sql = "SELECT pm.material_id, m.name, pm.price "
-                + "FROM product_materials pm "
-                + "JOIN materials m ON m.material_id = pm.material_id "
-                + "WHERE pm.product_id = ? AND pm.material_id = ? AND m.is_active = TRUE"
-                + (forUpdate ? " FOR UPDATE" : "");
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, productId);
-            ps.setInt(2, materialId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return Optional.empty();
-                return Optional.of(new ProductMaterial(
-                        rs.getInt("material_id"),
-                        rs.getString("name"),
-                        rs.getLong("price")));
-            }
-        }
-    }
-
-    /**
-     * Khóa (FOR UPDATE) các sản phẩm ACTIVE trong giỏ. ORDER BY product_id để
-     * mọi transaction khóa theo cùng một thứ tự, tránh deadlock.
-     */
-    public List<CartProduct> findCartProductsForUpdate(Connection conn, List<Integer> ids) throws SQLException {
-        if (ids == null || ids.isEmpty()) return List.of();
-
-        Set<Integer> distinct = new LinkedHashSet<>(ids);
-        String placeholders = String.join(",", Collections.nCopies(distinct.size(), "?"));
-        String sql = CART_COLUMNS + "AND p.product_id IN (" + placeholders + ") "
-                + "ORDER BY p.product_id FOR UPDATE";
-
-        List<CartProduct> result = new ArrayList<>();
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            int i = 1;
-            for (Integer id : distinct) ps.setInt(i++, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapCartProduct(rs));
-                }
-            }
-        }
-        return result;
-    }
-
-    /** Trừ tồn kho; trả false nếu không đủ hàng (không có dòng nào được cập nhật). */
-    public boolean decreaseStock(Connection conn, int productId, int quantity) throws SQLException {
-        String sql = "UPDATE products "
-                + "SET stock_quantity = stock_quantity - ?, sold_count = sold_count + ? "
-                + "WHERE product_id = ? AND stock_quantity >= ?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, quantity);
-            ps.setInt(2, quantity);
-            ps.setInt(3, productId);
-            ps.setInt(4, quantity);
-            return ps.executeUpdate() == 1;
-        }
-    }
 
     // ---------------------------------------------------------------------
     // SQL building
@@ -225,7 +112,7 @@ public class ProductDAO {
             params.add(like);
         }
         if (f.getCategoryId() != null) {
-            // Gồm cả danh mục con (1 cấp) của danh mục được chọn.
+            // Gồm cả danh mục con của danh mục được chọn.
             sb.append(" AND (p.category_id = ? OR c.parent_id = ?)");
             params.add(f.getCategoryId());
             params.add(f.getCategoryId());
@@ -257,7 +144,7 @@ public class ProductDAO {
         };
     }
 
-    /** Escape ký tự đặc biệt của LIKE (\ % _) để từ khóa được hiểu theo nghĩa đen (MySQL). */
+    /** Escape ký tự đặc biệt của LIKE (\ % _) để từ khóa được hiểu theo nghĩa đen. */
     private static String escapeLike(String s) {
         return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }

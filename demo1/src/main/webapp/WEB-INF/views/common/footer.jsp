@@ -29,7 +29,7 @@
             <h5>Hỗ trợ</h5>
             <ul>
                 <li><a href="${kh}/lien-he.jsp">Trung tâm trợ giúp</a></li>
-                <li><a href="${kh}/don_hang_cua_toi_3d.jsp">Theo dõi đơn hàng</a></li>
+                <li><a href="${ctx}/KhachHang/lich-su-mua-hang">Theo dõi đơn hàng</a></li>
                 <li><a href="${kh}/phan-hoi.jsp">Gửi phản hồi</a></li>
                 <li><a href="${kh}/danh-muc-yeu-thich.jsp">Danh mục yêu thích</a></li>
                 <li><a href="${kh}/lien-he.jsp">Chính sách đổi trả</a></li>

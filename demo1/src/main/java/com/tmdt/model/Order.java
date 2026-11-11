@@ -18,8 +18,11 @@ public class Order {
     private int orderId;
     private String orderCode;
     private int userId;
+    private String customerName;
     private int shopId;
     private String shopName;
+    private int shopOwnerUserId;      // users.user_id của chủ shop (phân quyền SELLER)
+    private Integer promotionId;      // null = không dùng mã khuyến mãi
     private String recipientName;
     private String recipientPhone;
     private String shippingAddress;
@@ -29,6 +32,7 @@ public class Order {
     private BigDecimal discountAmount = BigDecimal.ZERO;
     private BigDecimal totalAmount = BigDecimal.ZERO;
     private OrderStatus status = OrderStatus.PENDING;
+    private String cancelReason;
     private PaymentMethod paymentMethod;
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
     private LocalDateTime createdAt;
@@ -55,11 +59,20 @@ public class Order {
     public int getUserId() { return userId; }
     public void setUserId(int userId) { this.userId = userId; }
 
+    public String getCustomerName() { return customerName; }
+    public void setCustomerName(String customerName) { this.customerName = customerName; }
+
     public int getShopId() { return shopId; }
     public void setShopId(int shopId) { this.shopId = shopId; }
 
     public String getShopName() { return shopName; }
     public void setShopName(String shopName) { this.shopName = shopName; }
+
+    public int getShopOwnerUserId() { return shopOwnerUserId; }
+    public void setShopOwnerUserId(int shopOwnerUserId) { this.shopOwnerUserId = shopOwnerUserId; }
+
+    public Integer getPromotionId() { return promotionId; }
+    public void setPromotionId(Integer promotionId) { this.promotionId = promotionId; }
 
     public String getRecipientName() { return recipientName; }
     public void setRecipientName(String recipientName) { this.recipientName = recipientName; }
@@ -87,6 +100,9 @@ public class Order {
 
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus status) { this.status = status; }
+
+    public String getCancelReason() { return cancelReason; }
+    public void setCancelReason(String cancelReason) { this.cancelReason = cancelReason; }
 
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(PaymentMethod paymentMethod) { this.paymentMethod = paymentMethod; }

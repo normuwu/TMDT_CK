@@ -6,6 +6,7 @@ import com.tmdt.model.PaymentMethod;
 import com.tmdt.model.SessionUser;
 import com.tmdt.model.User;
 import com.tmdt.service.OrderService;
+import com.tmdt.service.PromotionService;
 import com.tmdt.util.AuthUtil;
 import com.tmdt.util.FlashUtil;
 import com.tmdt.util.Views;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +42,7 @@ public class CheckoutServlet extends HttpServlet {
 
     private final OrderService orderService = new OrderService();
     private final UserDAO userDAO = new UserDAO();
+    private final PromotionService promotionService = new PromotionService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -58,7 +61,7 @@ public class CheckoutServlet extends HttpServlet {
 
         SessionUser user = AuthUtil.currentUser(request);
         prefillFromProfile(request, user.getUserId());
-        prepareForm(request, cart);
+        prepareForm(request, request.getSession(true), cart);
         request.getRequestDispatcher(Views.CHECKOUT).forward(request, response);
     }
 
@@ -102,26 +105,34 @@ public class CheckoutServlet extends HttpServlet {
         request.setAttribute("formAddress", address);
         request.setAttribute("formNote", note);
 
+        // Mã khuyến mãi lấy từ SESSION (nguồn server), không nhận số tiền giảm từ trình duyệt.
+        String promotionCode = (String) session.getAttribute(PromotionService.SESSION_KEY);
+
         OrderService.PlaceOutcome outcome = orderService.placeCodOrder(
-                user.getUserId(), cart, fullName, phone, address, note);
+                user.getUserId(), cart, fullName, phone, address, note, promotionCode);
 
         if (outcome.success()) {
             List<String> ids = new ArrayList<>();
             for (var order : outcome.orders()) {
                 ids.add(String.valueOf(order.getOrderId()));
             }
-            // Chỉ xóa giỏ sau khi transaction đã commit thành công.
+            // Chỉ xóa giỏ + mã sau khi transaction đã commit thành công.
             session.removeAttribute("cart");
+            session.removeAttribute(PromotionService.SESSION_KEY);
             response.sendRedirect(request.getContextPath() + Views.ORDER_SUCCESS_URL
                     + "?ids=" + String.join(",", ids));
             return;
         }
 
+        // Mã không còn hợp lệ tại thời điểm đặt hàng -> bỏ để tránh hiển thị giảm giá sai.
+        if (outcome.status() == OrderService.PlaceStatus.PROMOTION_INVALID) {
+            session.removeAttribute(PromotionService.SESSION_KEY);
+        }
         request.setAttribute("error", outcome.message());
         if (!outcome.fieldErrors().isEmpty()) {
             request.setAttribute("fieldErrors", outcome.fieldErrors());
         }
-        prepareForm(request, cart);
+        prepareForm(request, session, cart);
         request.getRequestDispatcher(Views.CHECKOUT).forward(request, response);
     }
 
@@ -146,8 +157,31 @@ public class CheckoutServlet extends HttpServlet {
         }
     }
 
-    private static void prepareForm(HttpServletRequest request, Cart cart) {
+    /**
+     * Dữ liệu cho form + tóm tắt tiền.
+     * Mã trong session được KIỂM TRA LẠI mỗi lần hiển thị; nếu không còn hợp lệ
+     * (hết hạn, hết lượt, giỏ đổi...) thì bỏ và nêu lý do.
+     */
+    private void prepareForm(HttpServletRequest request, HttpSession session, Cart cart) {
         request.setAttribute("cart", cart);
         request.setAttribute("paymentMethods", PaymentMethod.values());
+
+        String code = (String) session.getAttribute(PromotionService.SESSION_KEY);
+        BigDecimal discount = BigDecimal.ZERO.setScale(2);
+        if (code != null) {
+            PromotionService.Preview preview = promotionService.preview(code, cart);
+            if (preview.valid()) {
+                request.setAttribute("promoCode", preview.promotion().getCode());
+                request.setAttribute("promoName", preview.promotion().getName());
+                request.setAttribute("promoLabel", preview.promotion().getDiscountLabel());
+                discount = preview.discount();
+            } else {
+                session.removeAttribute(PromotionService.SESSION_KEY);
+                request.setAttribute("promoError", preview.message());
+            }
+        }
+        request.setAttribute("promoDiscount", discount);
+        request.setAttribute("payableTotal",
+                PromotionService.money(cart.getTotal()).subtract(discount));
     }
 }

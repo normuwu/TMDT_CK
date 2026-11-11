@@ -9,6 +9,7 @@ import java.io.Serializable;
 public class CartItem implements Serializable {
 
     private int productId;
+    private int supplierId;          // xưởng bán (để kiểm tra mã khuyến mãi theo shop)
     private Integer materialId;      // null = không chọn vật liệu
     private String materialName;
     private String name;
@@ -35,6 +36,9 @@ public class CartItem implements Serializable {
 
     public int getProductId() { return productId; }
     public void setProductId(int productId) { this.productId = productId; }
+
+    public int getSupplierId() { return supplierId; }
+    public void setSupplierId(int supplierId) { this.supplierId = supplierId; }
 
     public Integer getMaterialId() { return materialId; }
     public void setMaterialId(Integer materialId) { this.materialId = materialId; }

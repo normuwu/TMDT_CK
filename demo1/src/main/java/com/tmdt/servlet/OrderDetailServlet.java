@@ -1,8 +1,10 @@
 package com.tmdt.servlet;
 
 import com.tmdt.model.Order;
+import com.tmdt.model.Role;
 import com.tmdt.model.SessionUser;
 import com.tmdt.service.OrderService;
+import com.tmdt.service.OrderStatusService;
 import com.tmdt.util.AuthUtil;
 import com.tmdt.util.FlashUtil;
 import com.tmdt.util.Views;
@@ -19,11 +21,16 @@ import java.util.Optional;
  * GET /KhachHang/chi-tiet-don-hang?id=12
  * Truy vấn luôn kèm user_id của session: đổi id trên URL sang đơn người khác
  * sẽ nhận 404, không lộ dữ liệu.
+ *
+ * ADMIN/SELLER cũng dùng lại trang này khi bấm "Chi tiết" ở trang quản lý đơn:
+ * phạm vi được kiểm tra ở server (ADMIN: mọi đơn, SELLER: đơn của shop mình),
+ * khách hàng vẫn chỉ thấy đơn của chính mình.
  */
 @WebServlet(name = "OrderDetailServlet", urlPatterns = Views.ORDER_DETAIL_URL)
 public class OrderDetailServlet extends HttpServlet {
 
     private final OrderService orderService = new OrderService();
+    private final OrderStatusService statusService = new OrderStatusService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -44,9 +51,12 @@ public class OrderDetailServlet extends HttpServlet {
         }
 
         SessionUser user = AuthUtil.currentUser(request);
+        boolean manager = user.getRole() == Role.ADMIN || user.getRole() == Role.SELLER;
         Optional<Order> order;
         try {
-            order = orderService.detail(user.getUserId(), orderId);
+            order = manager
+                    ? orderService.detailForManagement(user, orderId)
+                    : orderService.detail(user.getUserId(), orderId);
         } catch (IllegalStateException e) {
             getServletContext().log("Lỗi tải chi tiết đơn hàng " + orderId, e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
@@ -60,6 +70,16 @@ public class OrderDetailServlet extends HttpServlet {
         }
 
         request.setAttribute("order", order.get());
+        request.setAttribute("isManager", manager);
+        request.setAttribute("backUrl",
+                manager ? Views.ADMIN_ORDER_LIST_URL : Views.ORDER_HISTORY_URL);
+        request.setAttribute("backLabel",
+                manager ? "Quản lý đơn hàng" : "Lịch sử mua hàng");
+        // Khách chỉ thấy nút hủy khi đúng chủ đơn và đơn còn ở bước cho phép hủy.
+        request.setAttribute("canCancel",
+                !manager && OrderStatusService.canCustomerCancel(user, order.get()));
+        request.setAttribute("statusHistory",
+                statusService.history(order.get().getOrderId()));
         request.getRequestDispatcher(Views.ORDER_DETAIL).forward(request, response);
     }
 
