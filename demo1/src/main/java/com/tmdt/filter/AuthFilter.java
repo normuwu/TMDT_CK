@@ -189,8 +189,10 @@ public class AuthFilter implements Filter {
         return null;
     }
 
+    /** API JSON (fetch) phải nhận JSON khi bị chặn, không phải trang HTML đăng nhập. */
     private static boolean isJsonApi(String path) {
-        return path.toLowerCase(Locale.ROOT).startsWith("/admin/api/");
+        String lower = path.toLowerCase(Locale.ROOT);
+        return lower.startsWith("/admin/api/") || lower.startsWith("/nhacungcap/api/");
     }
 
     private static String pathOf(HttpServletRequest request) {
