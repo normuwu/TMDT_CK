@@ -23,7 +23,7 @@ import java.util.Optional;
 import static com.tmdt.util.DBConnection.getConnection;
 
 /**
- * Pure JDBC cho danh sách sản phẩm: lọc + sắp xếp + phân trang.
+ * Pure JDBC cho sản phẩm: lọc + sắp xếp + phân trang, và các truy vấn phục vụ giỏ hàng / đặt hàng.
  * Giá trị người dùng luôn đi qua PreparedStatement; phần ORDER BY chỉ lấy
  * từ enum ProductSort (không bao giờ ghép chuỗi người dùng vào SQL).
  */
@@ -33,6 +33,10 @@ public class ProductDAO {
             "SELECT p.product_id, p.supplier_id, s.shop_name, p.category_id, c.name AS category_name, "
                     + "p.name, p.slug, p.short_description, p.thumbnail_url, "
                     + "p.sold_count, p.avg_rating, p.review_count, p.created_at, ";
+
+    // ---------------------------------------------------------------------
+    // Tìm kiếm / danh sách
+    // ---------------------------------------------------------------------
 
     /** Tìm sản phẩm ACTIVE theo bộ lọc. Trang vượt quá tổng số trang sẽ được kéo về trang cuối. */
     public PageResult<Product> search(ProductFilter f) throws SQLException {
@@ -69,6 +73,41 @@ public class ProductDAO {
     }
 
     // ---------------------------------------------------------------------
+    // Trang chủ: sản phẩm mới nhất / bán chạy
+    // ---------------------------------------------------------------------
+
+    /** N sản phẩm mới nhất (ACTIVE). */
+    public List<Product> findNewest(int limit) throws SQLException {
+        return findTop("p.created_at DESC, p.product_id DESC", limit);
+    }
+
+    /** N sản phẩm bán chạy nhất (ACTIVE). */
+    public List<Product> findBestSelling(int limit) throws SQLException {
+        return findTop("p.sold_count DESC, p.product_id DESC", limit);
+    }
+
+    // Lay N san pham theo thu tu cho truoc (orderBy chi nhan hang so noi bo)
+    private List<Product> findTop(String orderBy, int limit) throws SQLException {
+        String sql = SELECT_COLUMNS + "p.price AS display_price"
+                + " FROM products p"
+                + " JOIN supplier_profiles s ON s.supplier_id = p.supplier_id"
+                + " JOIN categories c ON c.category_id = p.category_id"
+                + " WHERE p.status = 'ACTIVE' AND s.status = 'ACTIVE' AND c.is_active = TRUE"
+                + " ORDER BY " + orderBy + " LIMIT ?";
+        try (Connection conn = getConnection()) {
+            List<Product> products = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, limit);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) products.add(mapRow(rs));
+                }
+            }
+            loadMaterialNames(conn, products);
+            return products;
+        }
+    }
+
+    // ---------------------------------------------------------------------
     // SQL building
     // ---------------------------------------------------------------------
 
@@ -98,7 +137,7 @@ public class ProductDAO {
             params.add(like);
         }
         if (f.getCategoryId() != null) {
-            // Gồm cả danh mục con của danh mục được chọn.
+            // Gồm cả danh mục con (1 cấp) của danh mục được chọn.
             sb.append(" AND (p.category_id = ? OR c.parent_id = ?)");
             params.add(f.getCategoryId());
             params.add(f.getCategoryId());
@@ -130,7 +169,7 @@ public class ProductDAO {
         };
     }
 
-    /** Escape ký tự đặc biệt của LIKE (\ % _) để từ khóa được hiểu theo nghĩa đen. */
+    /** Escape ký tự đặc biệt của LIKE (\ % _) để từ khóa được hiểu theo nghĩa đen (MySQL). */
     private static String escapeLike(String s) {
         return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }

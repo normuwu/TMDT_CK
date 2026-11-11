@@ -1,14 +1,72 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.util.List, com.tmdt.model.Product" %>
+<%
+    // Mở thẳng trang_chu.jsp mà chưa có dữ liệu → nhờ HomeServlet nạp rồi quay lại đây.
+    if (request.getAttribute("newestProducts") == null) {
+        request.getRequestDispatcher("/trang-chu").forward(request, response);
+        return;
+    }
+    String ctx = request.getContextPath();
+    List<Product> newestProducts = (List<Product>) request.getAttribute("newestProducts");
+    List<Product> bestSellingProducts = (List<Product>) request.getAttribute("bestSellingProducts");
+%>
+<%!
+    private static String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                .replace("\"", "&quot;").replace("'", "&#39;");
+    }
+
+    private static String money(long v) {
+        return String.format("%,d", v).replace(',', '.') + "đ";
+    }
+
+    /** Vẽ một thẻ sản phẩm. */
+    private static String card(Product p, String ctx, boolean showSold) {
+        String thumb = p.getThumbnailUrl();
+        String img;
+        if (thumb == null || thumb.isBlank()) {
+            img = "<div class=\"prod-noimg\">PrintKraft</div>";
+        } else {
+            String src = thumb.startsWith("http") ? thumb
+                    : ctx + (thumb.startsWith("/") ? "" : "/") + thumb;
+            img = "<img src=\"" + esc(src) + "\" alt=\"" + esc(p.getName()) + "\" loading=\"lazy\">";
+        }
+        // TODO: đổi đường dẫn trang chi tiết cho đúng với project của bạn.
+        String href = ctx + "/chi-tiet-san-pham?id=" + p.getProductId();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<a class=\"prod-card\" href=\"").append(href).append("\">");
+        sb.append("<div class=\"prod-thumb\">").append(img).append("</div>");
+        sb.append("<div class=\"prod-body\">");
+        sb.append("<div class=\"prod-shop\">").append(esc(p.getSupplierName())).append("</div>");
+        sb.append("<h3 class=\"prod-name\">").append(esc(p.getName())).append("</h3>");
+        sb.append("<div class=\"prod-meta\">");
+        if (p.getReviewCount() > 0) {
+            sb.append("<span>★ ").append(String.format("%.1f", p.getAvgRating())).append("</span>");
+        }
+        if (showSold) {
+            sb.append("<span>Đã bán ").append(p.getSoldCount()).append("</span>");
+        }
+        sb.append("</div>");
+        sb.append("<div class=\"prod-price\"><small>Từ</small> ").append(money(p.getPrice())).append("</div>");
+        sb.append("</div></a>");
+        return sb.toString();
+    }
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <!-- Giu cho link tuong doi (dat_in_3d.jsp, san-pham) chay dung du trang mo qua /trang-chu -->
+    <base href="<%= ctx %>/KhachHang/">
     <title>PrintKraft — In theo yêu cầu</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/site.css">
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/assets/css/trang-chu.css">
+    <link rel="stylesheet" href="<%= ctx %>/assets/css/site.css">
+    <link rel="stylesheet" href="<%= ctx %>/assets/css/trang-chu.css">
+    <link rel="stylesheet" href="<%= ctx %>/assets/css/home-products.css">
 </head>
 <body>
 <jsp:include page="/WEB-INF/views/common/header.jsp">
@@ -54,6 +112,50 @@
                 <a href="dat_in_3d.jsp">Đồng phục team</a>
             </div>
         </div>
+
+        <!-- ============ SẢN PHẨM MỚI NHẤT ============ -->
+        <section class="home-products">
+            <div class="section">
+                <div class="section-head">
+                    <div>
+                        <h2>Sản phẩm mới nhất</h2>
+                        <p>Những mẫu in vừa được xưởng đối tác đăng bán</p>
+                    </div>
+                    <a class="see-all" href="<%= ctx %>/san-pham">Xem tất cả →</a>
+                </div>
+                <% if (newestProducts == null || newestProducts.isEmpty()) { %>
+                <p class="prod-empty">Chưa có sản phẩm nào.</p>
+                <% } else { %>
+                <div class="prod-grid">
+                    <% for (Product p : newestProducts) { %>
+                    <%= card(p, ctx, false) %>
+                    <% } %>
+                </div>
+                <% } %>
+            </div>
+        </section>
+
+        <!-- ============ SẢN PHẨM BÁN CHẠY ============ -->
+        <section class="home-products alt">
+            <div class="section">
+                <div class="section-head">
+                    <div>
+                        <h2>Sản phẩm bán chạy</h2>
+                        <p>Được khách hàng đặt nhiều nhất</p>
+                    </div>
+                    <a class="see-all" href="<%= ctx %>/san-pham">Xem tất cả →</a>
+                </div>
+                <% if (bestSellingProducts == null || bestSellingProducts.isEmpty()) { %>
+                <p class="prod-empty">Chưa có sản phẩm nào.</p>
+                <% } else { %>
+                <div class="prod-grid">
+                    <% for (Product p : bestSellingProducts) { %>
+                    <%= card(p, ctx, true) %>
+                    <% } %>
+                </div>
+                <% } %>
+            </div>
+        </section>
 
         <section class="how">
             <div class="section">
@@ -105,6 +207,6 @@
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
 
-<script src="<%= request.getContextPath() %>/assets/js/site.js"></script>
+<script src="<%= ctx %>/assets/js/site.js"></script>
 </body>
 </html>
