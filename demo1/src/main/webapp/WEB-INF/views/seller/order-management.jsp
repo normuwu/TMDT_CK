@@ -19,10 +19,10 @@
         .status-form{display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
         .status-form select,
         .status-form input{border:1px solid var(--line); border-radius:7px; padding:6px 8px; font-size:12px; background:white; font-family:inherit;}
-        .status-form input{width:130px;}
+        .status-form input{width:110px;}
         .status-form select:focus,
         .status-form input:focus{outline:none; border-color:var(--cobalt);}
-        .table-wrap table{min-width:980px;}
+        .table-wrap table{min-width:900px;}
         .thanks-note{font-size:12px; color:var(--muted); font-style:italic;}
         .pager{display:flex; justify-content:space-between; align-items:center; gap:12px;
             padding:12px 20px; border-top:1px solid var(--line); flex-wrap:wrap;}
@@ -111,7 +111,7 @@
                     <div>
                         <div class="metric-title">Đang xử lý / giao</div>
                         <div class="metric-value num"><c:out value="${activeCount}"/></div>
-                        <div class="metric-note">Đơn đã xác nhận hoặc đang giao</div>
+                        <div class="metric-note">Chờ xác nhận + đã xác nhận + đang giao</div>
                     </div>
                     <div class="metric-icon green">✓</div>
                 </div>

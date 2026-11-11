@@ -78,6 +78,10 @@
         .rank.top{background:#E7EBFD; color:var(--cobalt);}
         .def-note{font-size:11.5px; color:var(--muted); padding:0 20px 14px;}
         .link-plain{color:var(--cobalt); font-weight:600; font-size:12.5px;}
+        /* Bảng trong panel hẹp: thu gọn padding để không bị cắt cột. */
+        .panel .table-wrap table{min-width:0;}
+        .panel th, .panel td{padding-left:14px; padding-right:14px;}
+        .panel .pill{white-space:nowrap;}
         @media (max-width:900px){
             .quick-links{grid-template-columns:1fr;}
         }
@@ -199,7 +203,6 @@
                                             <c:otherwise><span class="delta flat">Bằng hôm qua</span></c:otherwise>
                                         </c:choose>
                                     </c:when>
-                                    <c:otherwise>Hôm qua chưa có đơn hoàn tất</c:otherwise>
                                 </c:choose>
                             </div>
                         </div>
@@ -221,8 +224,6 @@
                     </div>
 
                     <div class="range-note">
-                        Doanh thu được tính từ <b>orders.total_amount</b> của đơn có trạng thái
-                        <b>COMPLETED</b>; đơn chưa hoàn thành hoặc đã hủy không được cộng vào doanh thu.
                     </div>
 
                     <!-- ===== Điều hướng nhanh ===== -->
@@ -343,11 +344,10 @@
                                 </c:when>
                                 <c:otherwise>
                                     <div class="table-wrap">
-                                        <table style="min-width:420px;">
+                                        <table>
                                             <thead>
                                             <tr>
                                                 <th>Mã đơn</th>
-                                                <th>Khách</th>
                                                 <th>Giá trị</th>
                                                 <th>Trạng thái</th>
                                             </tr>
@@ -357,9 +357,8 @@
                                                 <tr>
                                                     <td>
                                                         <a class="link-plain" href="${o.detailUrl}">#<c:out value="${o.orderCode}"/></a>
-                                                        <div class="table-note"><c:out value="${o.createdAtText}"/></div>
+                                                        <div class="table-note"><c:out value="${o.recipientName}"/> · <c:out value="${o.createdAtText}"/></div>
                                                     </td>
-                                                    <td><c:out value="${o.recipientName}"/></td>
                                                     <td class="money-cell"><fmt:formatNumber value="${o.totalAmount}" groupingUsed="true"/>đ</td>
                                                     <td>
                                                         <c:choose>
@@ -399,7 +398,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <div class="table-wrap">
-                                        <table style="min-width:420px;">
+                                        <table>
                                             <thead>
                                             <tr>
                                                 <th>Sản phẩm</th>
@@ -456,7 +455,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <div class="table-wrap">
-                                        <table style="min-width:420px;">
+                                        <table>
                                             <thead>
                                             <tr>
                                                 <th>#</th>
