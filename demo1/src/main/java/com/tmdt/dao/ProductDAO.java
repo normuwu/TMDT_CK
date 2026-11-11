@@ -1,24 +1,30 @@
 package com.tmdt.dao;
 
+import com.tmdt.model.CartProduct;
 import com.tmdt.model.PageResult;
 import com.tmdt.model.Product;
 import com.tmdt.model.ProductFilter;
+import com.tmdt.model.ProductMaterial;
 import com.tmdt.model.ProductSort;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.tmdt.util.DBConnection.getConnection;
 
 /**
- * Pure JDBC cho danh sách sản phẩm: lọc + sắp xếp + phân trang.
+ * Pure JDBC cho sản phẩm: lọc + sắp xếp + phân trang, và các truy vấn phục vụ giỏ hàng / đặt hàng.
  * Giá trị người dùng luôn đi qua PreparedStatement; phần ORDER BY chỉ lấy
  * từ enum ProductSort (không bao giờ ghép chuỗi người dùng vào SQL).
  */
@@ -28,6 +34,18 @@ public class ProductDAO {
             "SELECT p.product_id, p.supplier_id, s.shop_name, p.category_id, c.name AS category_name, "
                     + "p.name, p.slug, p.short_description, p.thumbnail_url, "
                     + "p.sold_count, p.avg_rating, p.review_count, p.created_at, ";
+
+    // Dùng cho giỏ hàng / đặt hàng. Chỉnh tên cột cho khớp schema của bạn.
+    private static final String CART_COLUMNS =
+            "SELECT p.product_id, p.supplier_id, s.shop_name, p.name, p.thumbnail_url, "
+                    + "p.price, p.stock_quantity "
+                    + "FROM products p "
+                    + "JOIN supplier_profiles s ON s.supplier_id = p.supplier_id "
+                    + "WHERE p.status = 'ACTIVE' AND s.status = 'ACTIVE' ";
+
+    // ---------------------------------------------------------------------
+    // Tìm kiếm / danh sách
+    // ---------------------------------------------------------------------
 
     /** Tìm sản phẩm ACTIVE theo bộ lọc. Trang vượt quá tổng số trang sẽ được kéo về trang cuối. */
     public PageResult<Product> search(ProductFilter f) throws SQLException {
@@ -64,6 +82,91 @@ public class ProductDAO {
     }
 
     // ---------------------------------------------------------------------
+    // Giỏ hàng / đặt hàng
+    // ---------------------------------------------------------------------
+
+    /** Sản phẩm ACTIVE (đọc thường, không khóa) dùng cho giỏ hàng. */
+    public Optional<CartProduct> findCartProduct(int productId) throws SQLException {
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(CART_COLUMNS + "AND p.product_id = ?")) {
+            ps.setInt(1, productId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.of(mapCartProduct(rs)) : Optional.empty();
+            }
+        }
+    }
+
+    /** Vật liệu của sản phẩm (đọc thường) — dùng khi thêm vào giỏ. */
+    public Optional<ProductMaterial> findMaterial(int productId, int materialId) throws SQLException {
+        try (Connection conn = getConnection()) {
+            return findMaterial(conn, productId, materialId, false);
+        }
+    }
+
+    /**
+     * Vật liệu của sản phẩm trên connection có sẵn (trong transaction).
+     * forUpdate = true thì khóa dòng để giá không đổi giữa lúc kiểm tra và lúc ghi đơn.
+     */
+    public Optional<ProductMaterial> findMaterial(Connection conn, int productId, int materialId,
+                                                  boolean forUpdate) throws SQLException {
+        String sql = "SELECT pm.material_id, m.name, pm.price "
+                + "FROM product_materials pm "
+                + "JOIN materials m ON m.material_id = pm.material_id "
+                + "WHERE pm.product_id = ? AND pm.material_id = ? AND m.is_active = TRUE"
+                + (forUpdate ? " FOR UPDATE" : "");
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            ps.setInt(2, materialId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return Optional.empty();
+                return Optional.of(new ProductMaterial(
+                        rs.getInt("material_id"),
+                        rs.getString("name"),
+                        rs.getLong("price")));
+            }
+        }
+    }
+
+    /**
+     * Khóa (FOR UPDATE) các sản phẩm ACTIVE trong giỏ. ORDER BY product_id để
+     * mọi transaction khóa theo cùng một thứ tự, tránh deadlock.
+     */
+    public List<CartProduct> findCartProductsForUpdate(Connection conn, List<Integer> ids) throws SQLException {
+        if (ids == null || ids.isEmpty()) return List.of();
+
+        Set<Integer> distinct = new LinkedHashSet<>(ids);
+        String placeholders = String.join(",", Collections.nCopies(distinct.size(), "?"));
+        String sql = CART_COLUMNS + "AND p.product_id IN (" + placeholders + ") "
+                + "ORDER BY p.product_id FOR UPDATE";
+
+        List<CartProduct> result = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            int i = 1;
+            for (Integer id : distinct) ps.setInt(i++, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapCartProduct(rs));
+                }
+            }
+        }
+        return result;
+    }
+
+    /** Trừ tồn kho; trả false nếu không đủ hàng (không có dòng nào được cập nhật). */
+    public boolean decreaseStock(Connection conn, int productId, int quantity) throws SQLException {
+        String sql = "UPDATE products "
+                + "SET stock_quantity = stock_quantity - ?, sold_count = sold_count + ? "
+                + "WHERE product_id = ? AND stock_quantity >= ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setInt(2, quantity);
+            ps.setInt(3, productId);
+            ps.setInt(4, quantity);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+    // ---------------------------------------------------------------------
     // SQL building
     // ---------------------------------------------------------------------
 
@@ -93,7 +196,7 @@ public class ProductDAO {
             params.add(like);
         }
         if (f.getCategoryId() != null) {
-            // Gồm cả danh mục con của danh mục được chọn.
+            // Gồm cả danh mục con (1 cấp) của danh mục được chọn.
             sb.append(" AND (p.category_id = ? OR c.parent_id = ?)");
             params.add(f.getCategoryId());
             params.add(f.getCategoryId());
@@ -125,7 +228,7 @@ public class ProductDAO {
         };
     }
 
-    /** Escape ký tự đặc biệt của LIKE (\ % _) để từ khóa được hiểu theo nghĩa đen. */
+    /** Escape ký tự đặc biệt của LIKE (\ % _) để từ khóa được hiểu theo nghĩa đen (MySQL). */
     private static String escapeLike(String s) {
         return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
@@ -164,8 +267,20 @@ public class ProductDAO {
         p.setSoldCount(rs.getInt("sold_count"));
         p.setAvgRating(rs.getDouble("avg_rating"));
         p.setReviewCount(rs.getInt("review_count"));
-        p.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        Timestamp created = rs.getTimestamp("created_at");
+        p.setCreatedAt(created == null ? null : created.toLocalDateTime());
         return p;
+    }
+
+    private CartProduct mapCartProduct(ResultSet rs) throws SQLException {
+        return new CartProduct(
+                rs.getInt("product_id"),
+                rs.getInt("supplier_id"),
+                rs.getString("shop_name"),
+                rs.getString("name"),
+                rs.getString("thumbnail_url"),
+                rs.getLong("price"),
+                rs.getInt("stock_quantity"));
     }
 
     /** Một truy vấn cho cả trang: lấy tên các vật liệu của những sản phẩm vừa tìm được. */
