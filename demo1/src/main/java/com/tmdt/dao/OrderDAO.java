@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -118,6 +119,114 @@ public class OrderDAO {
             }
         }
         return orders;
+    }
+
+    /** Số đơn của một xưởng (shopOwnerUserId = null: toàn sàn) theo từng trạng thái. */
+    public record StatusCounts(int total, int pending, int confirmed, int shipping,
+                               int completed, int cancelled) {
+        public int processing() {
+            return pending + confirmed + shipping;
+        }
+    }
+
+    /**
+     * Một trang đơn cho Admin (shopOwnerUserId = null) hoặc Seller (chỉ đơn của xưởng mình),
+     * kèm bộ lọc trạng thái và khoảng ngày tạo [from, to]. Cả hai tham số ngày đều có thể null.
+     */
+    public List<Order> findForManagement(Integer shopOwnerUserId, OrderStatus statusFilter,
+                                         LocalDate from, LocalDate to,
+                                         int offset, int limit) throws SQLException {
+        List<Object> params = new ArrayList<>();
+        String sql = SELECT_ORDER + managementWhere(shopOwnerUserId, statusFilter, from, to, params)
+                + " ORDER BY o.created_at DESC, o.order_id DESC LIMIT ? OFFSET ?";
+
+        List<Order> orders = new ArrayList<>();
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            int index = bindParams(ps, params);
+            ps.setInt(index++, limit);
+            ps.setInt(index, offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    orders.add(mapRow(rs));
+                }
+            }
+        }
+        return orders;
+    }
+
+    /** Tổng số đơn khớp bộ lọc (để tính số trang). */
+    public int countForManagement(Integer shopOwnerUserId, OrderStatus statusFilter,
+                                  LocalDate from, LocalDate to) throws SQLException {
+        List<Object> params = new ArrayList<>();
+        String sql = "SELECT COUNT(*) FROM orders o "
+                + "JOIN shops sh ON sh.shop_id = o.shop_id "
+                + managementWhere(shopOwnerUserId, statusFilter, from, to, params);
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            bindParams(ps, params);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    /** Số đơn toàn bộ (không lọc ngày/trạng thái) của xưởng hoặc toàn sàn. */
+    public StatusCounts statusCounts(Integer shopOwnerUserId) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) AS total, "
+                + "COALESCE(SUM(o.order_status = 'PENDING'), 0) AS pending, "
+                + "COALESCE(SUM(o.order_status = 'CONFIRMED'), 0) AS confirmed, "
+                + "COALESCE(SUM(o.order_status = 'SHIPPING'), 0) AS shipping, "
+                + "COALESCE(SUM(o.order_status = 'COMPLETED'), 0) AS completed, "
+                + "COALESCE(SUM(o.order_status = 'CANCELLED'), 0) AS cancelled "
+                + "FROM orders o JOIN shops sh ON sh.shop_id = o.shop_id WHERE 1 = 1 ");
+        if (shopOwnerUserId != null) {
+            sql.append("AND sh.user_id = ?");
+        }
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            if (shopOwnerUserId != null) {
+                ps.setInt(1, shopOwnerUserId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return new StatusCounts(0, 0, 0, 0, 0, 0);
+                }
+                return new StatusCounts(rs.getInt("total"), rs.getInt("pending"),
+                        rs.getInt("confirmed"), rs.getInt("shipping"),
+                        rs.getInt("completed"), rs.getInt("cancelled"));
+            }
+        }
+    }
+
+    private static String managementWhere(Integer shopOwnerUserId, OrderStatus statusFilter,
+                                         LocalDate from, LocalDate to, List<Object> params) {
+        StringBuilder where = new StringBuilder("WHERE 1 = 1 ");
+        if (shopOwnerUserId != null) {
+            where.append("AND sh.user_id = ? ");
+            params.add(shopOwnerUserId);
+        }
+        if (statusFilter != null) {
+            where.append("AND o.order_status = ? ");
+            params.add(statusFilter.getCode());
+        }
+        if (from != null) {
+            where.append("AND o.created_at >= ? ");
+            params.add(Timestamp.valueOf(from.atStartOfDay()));
+        }
+        if (to != null) {
+            where.append("AND o.created_at < ? ");
+            params.add(Timestamp.valueOf(to.plusDays(1).atStartOfDay()));
+        }
+        return where.toString();
+    }
+
+    private static int bindParams(PreparedStatement ps, List<Object> params) throws SQLException {
+        int index = 1;
+        for (Object value : params) {
+            ps.setObject(index++, value);
+        }
+        return index;
     }
 
     /**
