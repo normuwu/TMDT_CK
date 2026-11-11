@@ -11,7 +11,7 @@
       </jsp:include>
 
   Giá trị active (mục menu được tô sáng):
-      home | san-pham | studio | doanh-nghiep | nhacungcap | donhang | danhgia | faq
+      home | san-pham | studio | doanh-nghiep | nhacungcap | donhang | trahang | danhgia | faq
   Trang không nằm trong menu thì bỏ qua tham số này.
 
   Tất cả link dùng đường dẫn tuyệt đối theo context path, nên đặt trang ở thư mục nào cũng đúng.
@@ -38,6 +38,7 @@
         <a href="${kh}/trang_chu.jsp" class="${active == 'doanh-nghiep' ? 'active' : ''}">Doanh nghiệp</a>
         <a href="${kh}/tim-kiem-nha-cung-cap.jsp" class="${active == 'nhacungcap' ? 'active' : ''}">Nhà cung cấp</a>
         <a href="${kh}/don_hang_cua_toi_3d.jsp" class="${active == 'donhang' ? 'active' : ''}">Đơn hàng</a>
+        <a href="${kh}/tra_hang_hoan_tien_custom.jsp" class="${active == 'trahang' ? 'active' : ''}">Trả hàng &amp; Hoàn tiền</a>
         <a href="${kh}/danh-gia.jsp" class="${active == 'danhgia' ? 'active' : ''}">Đánh giá</a>
         <a href="${kh}/lien-he.jsp" class="${active == 'faq' ? 'active' : ''}">Hỗ trợ</a>
     </nav>

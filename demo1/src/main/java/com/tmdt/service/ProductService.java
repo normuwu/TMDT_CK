@@ -23,6 +23,24 @@ public class ProductService {
         }
     }
 
+    // San pham moi nhat (trang chu)
+    public List<Product> newest(int limit) {
+        try {
+            return productDAO.findNewest(limit);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không tải được sản phẩm mới nhất", e);
+        }
+    }
+
+    // San pham ban chay (trang chu)
+    public List<Product> bestSelling(int limit) {
+        try {
+            return productDAO.findBestSelling(limit);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không tải được sản phẩm bán chạy", e);
+        }
+    }
+
     public List<FilterOption> categories() {
         try {
             return catalogDAO.findActiveCategories();

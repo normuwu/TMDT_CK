@@ -80,7 +80,36 @@ public class ProductDAO {
             return new PageResult<>(products, page, pageSize, total);
         }
     }
+    // San pham moi nhat
+    public List<Product> findNewest(int limit) throws SQLException {
+        return findTop("p.created_at DESC, p.product_id DESC", limit);
+    }
 
+    // San pham ban chay
+    public List<Product> findBestSelling(int limit) throws SQLException {
+        return findTop("p.sold_count DESC, p.product_id DESC", limit);
+    }
+
+    // Lay N san pham theo thu tu cho truoc (orderBy chi nhan hang so noi bo)
+    private List<Product> findTop(String orderBy, int limit) throws SQLException {
+        String sql = SELECT_COLUMNS + "p.price AS display_price"
+                + " FROM products p"
+                + " JOIN supplier_profiles s ON s.supplier_id = p.supplier_id"
+                + " JOIN categories c ON c.category_id = p.category_id"
+                + " WHERE p.status = 'ACTIVE' AND s.status = 'ACTIVE' AND c.is_active = TRUE"
+                + " ORDER BY " + orderBy + " LIMIT ?";
+        try (Connection conn = getConnection()) {
+            List<Product> products = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, limit);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) products.add(mapRow(rs));
+                }
+            }
+            loadMaterialNames(conn, products);
+            return products;
+        }
+    }
     // ---------------------------------------------------------------------
     // Giỏ hàng / đặt hàng
     // ---------------------------------------------------------------------
