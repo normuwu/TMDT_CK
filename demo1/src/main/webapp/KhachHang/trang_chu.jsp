@@ -121,7 +121,6 @@
                         <h2>Sản phẩm mới nhất</h2>
                         <p>Những mẫu in vừa được xưởng đối tác đăng bán</p>
                     </div>
-                    <a class="see-all" href="<%= ctx %>/san-pham">Xem tất cả →</a>
                 </div>
                 <% if (newestProducts == null || newestProducts.isEmpty()) { %>
                 <p class="prod-empty">Chưa có sản phẩm nào.</p>
@@ -143,7 +142,6 @@
                         <h2>Sản phẩm bán chạy</h2>
                         <p>Được khách hàng đặt nhiều nhất</p>
                     </div>
-                    <a class="see-all" href="<%= ctx %>/san-pham">Xem tất cả →</a>
                 </div>
                 <% if (bestSellingProducts == null || bestSellingProducts.isEmpty()) { %>
                 <p class="prod-empty">Chưa có sản phẩm nào.</p>
