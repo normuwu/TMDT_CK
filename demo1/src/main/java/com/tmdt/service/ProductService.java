@@ -9,14 +9,10 @@ import com.tmdt.model.ProductFilter;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ProductService {
 
     private final ProductDAO productDAO = new ProductDAO();
-    private static final Logger LOG = Logger.getLogger(ProductService.class.getName());
-
     private final CatalogDAO catalogDAO = new CatalogDAO();
 
     public PageResult<Product> search(ProductFilter filter) {
@@ -24,6 +20,24 @@ public class ProductService {
             return productDAO.search(filter);
         } catch (SQLException e) {
             throw new IllegalStateException("Không tải được danh sách sản phẩm", e);
+        }
+    }
+
+    // San pham moi nhat (trang chu)
+    public List<Product> newest(int limit) {
+        try {
+            return productDAO.findNewest(limit);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không tải được sản phẩm mới nhất", e);
+        }
+    }
+
+    // San pham ban chay (trang chu)
+    public List<Product> bestSelling(int limit) {
+        try {
+            return productDAO.findBestSelling(limit);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không tải được sản phẩm bán chạy", e);
         }
     }
 
@@ -49,5 +63,9 @@ public class ProductService {
         } catch (SQLException e) {
             throw new IllegalStateException("Không tải được nhà cung cấp", e);
         }
+    }
+
+    public Object recommendationsFor(Integer userId, Integer id) {
+        return null;
     }
 }
