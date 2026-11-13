@@ -8,8 +8,10 @@
   'use strict';
 
   var APP_CTX = (document.querySelector('meta[name="app-ctx"]') || {}).content || '';
-  // Đường dẫn API thống kê: Admin dùng mặc định, Người bán khai báo qua <meta name="stats-api">.
-  var STATS_PATH = (document.querySelector('meta[name="stats-api"]') || {}).content || '/admin/api/stats';
+  // Đường dẫn API thống kê: Admin dùng mặc định, Người bán khai báo qua <meta name="stats-api">
+  // (đã kèm context path), nên không cộng thêm APP_CTX vào đường dẫn này.
+  var STATS_PATH = (document.querySelector('meta[name="stats-api"]') || {}).content
+      || (APP_CTX + '/admin/api/stats');
   var DATA_START = '2026-01-01';
 
   var STATUS_COLORS = {
@@ -55,7 +57,7 @@
   /* ---------- Gọi API ---------- */
   function apiGet(path, params) {
     var qs = new URLSearchParams(params).toString();
-    return fetch(APP_CTX + path + '?' + qs, {
+    return fetch(path + '?' + qs, {
       credentials: 'same-origin',
       headers: { 'Accept': 'application/json' }
     }).then(function (response) {
