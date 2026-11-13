@@ -27,30 +27,6 @@ public class ProductService {
         }
     }
 
-    /**
-     * Sản phẩm gợi ý cho trang chi tiết. Người chưa đăng nhập hoặc chưa có hành vi
-     * (cold start) nhận danh sách bán chạy, nên khối gợi ý luôn có nội dung.
-     */
-    public List<Product> recommendationsFor(Integer userId, Integer excludeProductId) {
-        if (userId != null) {
-            try {
-                List<Product> personalized =
-                        productDAO.findRecommendedForUser(userId, excludeProductId, 8);
-                if (!personalized.isEmpty()) {
-                    return personalized;
-                }
-            } catch (SQLException e) {
-                // Ví dụ chưa chạy script tạo bảng product_views: vẫn còn fallback bên dưới.
-                LOG.log(Level.WARNING, "Không tính được gợi ý cá nhân hoá cho user " + userId, e);
-            }
-        }
-        try {
-            return productDAO.findBestsellers(8);
-        } catch (SQLException e) {
-            throw new IllegalStateException("Không tải được sản phẩm gợi ý", e);
-        }
-    }
-
     public List<FilterOption> categories() {
         try {
             return catalogDAO.findActiveCategories();

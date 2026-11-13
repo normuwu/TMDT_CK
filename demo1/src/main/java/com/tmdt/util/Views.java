@@ -7,7 +7,13 @@ import com.tmdt.model.Role;
  * here — servlets must always prepend request.getContextPath().
  */
 public final class Views {
-
+    // --- Trang chủ, gian hàng nhà cung cấp ---
+    public static final String HOME = "/WEB-INF/views/home/home.jsp";
+    public static final String SUPPLIER_LIST = "/WEB-INF/views/supplier/suppliers.jsp";
+    public static final String SUPPLIER_SHOP = "/WEB-INF/views/supplier/shop.jsp";
+    public static final String SUPPLIER_LIST_URL = "/KhachHang/nha-cung-cap";
+    public static final String SUPPLIER_SHOP_URL = "/KhachHang/gian-hang";
+    public static final String SUPPLIER_REVIEW_URL = "/KhachHang/danh-gia-nha-cung-cap";
     // --- JSP forwards (servlet-internal) ---
     public static final String LOGIN = "/WEB-INF/views/auth/login.jsp";
     public static final String REGISTER = "/WEB-INF/views/auth/register.jsp";
