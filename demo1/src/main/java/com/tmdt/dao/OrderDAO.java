@@ -333,7 +333,7 @@ public class OrderDAO {
         }
     }
 
-    /** Ghi bản ghi thanh toán ban đầu (COD → PENDING: chưa thanh toán). */
+    /** Ghi bản ghi thanh toán ban đầu (COD / BANK_TRANSFER → PENDING: chưa thanh toán). */
     public void insertPayment(Connection conn, int orderId, PaymentMethod method,
                               BigDecimal amount, PaymentStatus status) throws SQLException {
         final String sql = "INSERT INTO payments "
@@ -344,6 +344,26 @@ public class OrderDAO {
             ps.setString(2, method.getCode());
             ps.setBigDecimal(3, amount);
             ps.setString(4, status.getCode());
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Cập nhật kết quả thanh toán từ cổng VNPay trong cùng transaction.
+     */
+    public void updatePaymentAfterVnpay(Connection conn, int orderId, PaymentStatus status,
+                                        String transactionCode, boolean markPaidTime) throws SQLException {
+        final String sql = "UPDATE payments SET payment_status = ?, transaction_code = ?, "
+                + "paid_at = " + (markPaidTime ? "NOW()" : "NULL")
+                + " WHERE order_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status.getCode());
+            if (transactionCode == null || transactionCode.isBlank()) {
+                ps.setNull(2, Types.VARCHAR);
+            } else {
+                ps.setString(2, transactionCode.trim());
+            }
+            ps.setInt(3, orderId);
             ps.executeUpdate();
         }
     }

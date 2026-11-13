@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="${ctx}/assets/css/printkraft.css">
     <link rel="stylesheet" href="${ctx}/assets/css/order.css">
     <style>
-        /* Sửa lỗi nút .btn-secondary chiếm 100% chiều rộng làm ép nhỏ ô nhập mã khuyến mãi */
+        /* Cố định kích thước ô nhập mã khuyến mãi và nút Áp dụng */
         .promo-box .promo-form {
             display: flex !important;
             align-items: stretch !important;
@@ -131,23 +131,27 @@
                                     ${pm.code == 'COD' ? '💵' : '🏦'}
                                 </span>
                                 <span class="pm-body">
-                                    <strong><c:out value="${pm.label}"/></strong>
+                                    <strong>
+                                        <c:choose>
+                                            <c:when test="${pm.code == 'BANK_TRANSFER'}">Thanh toán trực tuyến (VNPay)</c:when>
+                                            <c:otherwise><c:out value="${pm.label}"/></c:otherwise>
+                                        </c:choose>
+                                    </strong>
                                     <span>
                                         <c:choose>
-                                            <c:when test="${pm.code == 'COD'}">Thanh toán trực tiếp khi nhận hàng.</c:when>
-                                            <c:otherwise>Chuyển khoản trước, xưởng xác nhận sau.</c:otherwise>
+                                            <c:when test="${pm.code == 'COD'}">Thanh toán trực tiếp bằng tiền mặt khi nhận hàng.</c:when>
+                                            <c:otherwise>Thanh toán qua cổng VNPay (Thẻ ATM nội địa / VietQR / Thẻ quốc tế).</c:otherwise>
                                         </c:choose>
                                     </span>
                                 </span>
                                 <c:if test="${pm.code == 'BANK_TRANSFER'}">
-                                    <span class="pm-tag">Đang phát triển</span>
+                                    <span class="pm-tag" style="background:#e0f2fe;color:#0369a1;">VNPay Sandbox</span>
                                 </c:if>
                             </label>
                         </c:forEach>
                     </div>
                     <p class="sum-note" style="text-align:left;margin-top:12px;">
-                        Hiện chỉ thanh toán khi nhận hàng (COD) được hỗ trợ tạo đơn thật.
-                        Chọn chuyển khoản sẽ hiển thị thông báo và <b>không</b> tạo đơn hàng.
+                        Khi chọn <b>Thanh toán trực tuyến (VNPay)</b>, hệ thống sẽ chuyển hướng bạn sang cổng VNPay để hoàn tất giao dịch.
                     </p>
                 </div>
 
@@ -176,7 +180,7 @@
             <div class="sum-row"><span>Tạm tính</span><b><fmt:formatNumber value="${cart.total}" groupingUsed="true"/>đ</b></div>
             <div class="sum-row"><span>Phí vận chuyển</span><b>Miễn phí</b></div>
 
-            <%-- ---------- Mã khuyến mãi (form riêng, không lồng trong form thanh toán) ---------- --%>
+            <%-- ---------- Mã khuyến mãi ---------- --%>
             <div class="promo-box">
                 <c:choose>
                     <c:when test="${not empty promoCode}">
@@ -227,6 +231,7 @@
 </main>
 
 <div id="site-footer"></div>
+<jsp:include page="/WEB-INF/views/common/chatbot.jsp"/>
 <script src="${ctx}/assets/js/printkraft.js"></script>
 </body>
 </html>

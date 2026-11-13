@@ -56,3 +56,5 @@
 <%-- Lớp phủ mờ cho ngăn kéo giỏ hàng và các modal; thông báo nổi --%>
 <div class="overlay" id="overlay" onclick="closeAll()"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<jsp:include page="/WEB-INF/views/common/chatbot.jsp"/>
