@@ -146,6 +146,7 @@
 </main>
 
 <div id="site-footer"></div>
+<jsp:include page="/WEB-INF/views/common/chatbot.jsp"/>
 <script src="${ctx}/assets/js/printkraft.js"></script>
 </body>
 </html>

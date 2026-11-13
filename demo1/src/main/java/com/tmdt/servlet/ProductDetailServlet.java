@@ -1,8 +1,10 @@
 package com.tmdt.servlet;
 
+import com.tmdt.dao.ProductViewDAO;
 import com.tmdt.model.ProductDetail;
 import com.tmdt.model.SessionUser;
 import com.tmdt.service.ProductDetailService;
+import com.tmdt.service.ProductService;
 import com.tmdt.service.ReviewService;
 import com.tmdt.util.AuthUtil;
 import com.tmdt.util.FlashUtil;
@@ -16,6 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.Optional;
 
 /**
@@ -27,6 +30,8 @@ public class ProductDetailServlet extends HttpServlet {
 
     private final ProductDetailService detailService = new ProductDetailService();
     private final ReviewService reviewService = new ReviewService();
+    private final ProductService productService = new ProductService();
+    private final ProductViewDAO productViewDAO = new ProductViewDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -60,6 +65,16 @@ public class ProductDetailServlet extends HttpServlet {
         request.setAttribute("canReview", canReview);
         if (user != null && !canReview) {
             request.setAttribute("reviewNotice", ReviewService.MSG_NOT_PURCHASED);
+        }
+
+        // Ghi nhận lượt xem + tính gợi ý. Đây là tính năng phụ: mọi lỗi chỉ log,
+        // tuyệt đối không làm hỏng trang chi tiết sản phẩm.
+        Integer userId = user == null ? null : user.getUserId();
+        try {
+            productViewDAO.record(userId, request.getSession(true).getId(), id);
+            request.setAttribute("recommended", productService.recommendationsFor(userId, id));
+        } catch (SQLException | IllegalStateException e) {
+            getServletContext().log("Không tải được gợi ý sản phẩm (productId=" + id + ")", e);
         }
 
         String back = Views.PRODUCT_DETAIL_URL + "?id=" + id;

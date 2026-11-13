@@ -36,13 +36,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Nghiệp vụ đặt hàng + lịch sử mua hàng.
- *
- * Nguyên tắc quan trọng:
- *  - Giá và tồn kho luôn đọc lại từ DB (không tin giá trong session/trình duyệt).
- *  - Toàn bộ đơn hàng nằm trong MỘT transaction, lỗi ở bất kỳ bước nào → rollback.
- *  - orders.shop_id là NOT NULL, nên giỏ có nhiều xưởng sẽ tạo nhiều đơn
- *    (mỗi xưởng một đơn) trong cùng transaction.
+ * Nghiệp vụ đặt hàng (COD + VNPay) & lịch sử mua hàng.
  */
 public class OrderService {
 
@@ -72,12 +66,21 @@ public class OrderService {
     }
 
     // ---------------------------------------------------------------------
-    // Đặt hàng COD
+    // Đặt hàng (COD & VNPay)
     // ---------------------------------------------------------------------
 
     public PlaceOutcome placeCodOrder(int userId, Cart cart, String fullName,
                                       String phone, String address, String note,
                                       String promotionCode) {
+        return placeOrder(userId, cart, fullName, phone, address, note,
+                promotionCode, PaymentMethod.COD);
+    }
+
+    public PlaceOutcome placeOrder(int userId, Cart cart, String fullName,
+                                   String phone, String address, String note,
+                                   String promotionCode, PaymentMethod paymentMethod) {
+        PaymentMethod method = (paymentMethod == null) ? PaymentMethod.COD : paymentMethod;
+
         Map<String, String> errors = validateRecipient(fullName, phone, address, note);
         if (!errors.isEmpty()) {
             return new PlaceOutcome(PlaceStatus.VALIDATION_ERROR, errors,
@@ -201,7 +204,6 @@ public class OrderService {
                     List<OrderLine> lines = entry.getValue();
                     BigDecimal subtotal = subtotalBySupplier.get(entry.getKey());
 
-                    // Chia tiền giảm của cả giỏ cho từng đơn; đơn cuối nhận phần lẻ còn lại.
                     BigDecimal discount;
                     groupIndex++;
                     if (promotion == null) {
@@ -228,9 +230,9 @@ public class OrderService {
                     order.setSubtotalAmount(subtotal);
                     order.setShippingFee(BigDecimal.ZERO.setScale(2));
                     order.setDiscountAmount(discount);
-                    order.setTotalAmount(subtotal.subtract(discount)); // miễn phí vận chuyển, không âm
+                    order.setTotalAmount(subtotal.subtract(discount));
                     order.setStatus(OrderStatus.PENDING);
-                    order.setPaymentMethod(PaymentMethod.COD);
+                    order.setPaymentMethod(method);
                     order.setPaymentStatus(PaymentStatus.PENDING);
                     order.setCreatedAt(now);
 
@@ -256,19 +258,20 @@ public class OrderService {
                     }
                     order.setItems(savedItems);
 
-                    // COD: đơn mới → chờ xác nhận, thanh toán chưa thực hiện.
-                    orderDAO.insertPayment(conn, order.getOrderId(), PaymentMethod.COD,
+                    orderDAO.insertPayment(conn, order.getOrderId(), method,
                             order.getTotalAmount(), PaymentStatus.PENDING);
 
-                    // Mốc đầu tiên của lịch sử trạng thái.
+                    String initNote = (method == PaymentMethod.BANK_TRANSFER)
+                            ? "Đơn hàng được tạo (Chờ thanh toán qua VNPay)"
+                            : "Đơn hàng được tạo";
                     historyDAO.insert(conn, order.getOrderId(), null, OrderStatus.PENDING,
-                            userId, "Đơn hàng được tạo");
+                            userId, initNote);
 
                     created.add(order);
                 }
 
                 conn.commit();
-                LOG.info("Đã tạo {} đơn COD cho userId={}", created.size(), userId);
+                LOG.info("Đã tạo {} đơn ({}) cho userId={}", created.size(), method, userId);
                 return new PlaceOutcome(PlaceStatus.SUCCESS, Map.of(),
                         "Đặt hàng thành công.", created);
             } catch (SQLException e) {
@@ -285,6 +288,77 @@ public class OrderService {
             return new PlaceOutcome(PlaceStatus.SYSTEM_ERROR, Map.of(),
                     "Không kết nối được cơ sở dữ liệu, vui lòng thử lại sau.", List.of());
         }
+    }
+
+    // ---------------------------------------------------------------------
+    // Xử lý kết quả trả về từ cổng thanh toán VNPay
+    // ---------------------------------------------------------------------
+
+    /**
+     * Cập nhật kết quả thanh toán VNPay cho các đơn vừa đặt.
+     * - Thành công (paymentSuccess = true): đánh dấu PAID + lưu mã giao dịch VNPay.
+     * - Thất bại / Khách hủy (paymentSuccess = false): đánh dấu FAILED, hủy đơn PENDING và hoàn kho.
+     */
+    public boolean processVnpayReturn(List<Integer> orderIds, boolean paymentSuccess,
+                                      String transactionNo, String responseCode) {
+        if (orderIds == null || orderIds.isEmpty()) return false;
+
+        PaymentStatus paidStatus = resolveStatus("PAID", "COMPLETED", "SUCCESS");
+        PaymentStatus failedStatus = resolveStatus("FAILED", "CANCELLED", "PENDING");
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                for (Integer orderId : orderIds) {
+                    if (orderId == null || orderId <= 0) continue;
+                    Optional<Order> found = orderDAO.findById(conn, orderId, true);
+                    if (found.isEmpty()) continue;
+
+                    Order order = found.get();
+                    if (paymentSuccess) {
+                        orderDAO.updatePaymentAfterVnpay(conn, orderId, paidStatus, transactionNo, true);
+                        historyDAO.insert(conn, orderId, order.getStatus(), order.getStatus(),
+                                order.getUserId(),
+                                "Đã thanh toán trực tuyến qua VNPay (Mã GD: "
+                                        + (transactionNo == null ? "N/A" : transactionNo) + ")");
+                    } else {
+                        orderDAO.updatePaymentAfterVnpay(conn, orderId, failedStatus, transactionNo, false);
+                        if (order.getStatus() == OrderStatus.PENDING) {
+                            String reason = "Thanh toán VNPay không thành công hoặc bị hủy (Mã: "
+                                    + (responseCode == null ? "N/A" : responseCode) + ")";
+                            if (orderDAO.updateStatus(conn, orderId, OrderStatus.PENDING,
+                                    OrderStatus.CANCELLED, reason)) {
+                                for (OrderItem item : orderItemDAO.findByOrderId(conn, orderId)) {
+                                    productDAO.restoreStock(conn, item.getProductId(), item.getQuantity());
+                                }
+                                historyDAO.insert(conn, orderId, OrderStatus.PENDING,
+                                        OrderStatus.CANCELLED, order.getUserId(), reason);
+                            }
+                        }
+                    }
+                }
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            LOG.error("Lỗi cập nhật kết quả VNPay cho orders={}", orderIds, e);
+            return false;
+        }
+    }
+
+    private static PaymentStatus resolveStatus(String... preferredNames) {
+        for (String preferred : preferredNames) {
+            for (PaymentStatus ps : PaymentStatus.values()) {
+                if (ps.name().equalsIgnoreCase(preferred)
+                        || ps.getCode().equalsIgnoreCase(preferred)) {
+                    return ps;
+                }
+            }
+        }
+        return PaymentStatus.PENDING;
     }
 
     // ---------------------------------------------------------------------
@@ -313,11 +387,7 @@ public class OrderService {
     }
 
     /**
-     * Chi tiết đơn cho ADMIN/SELLER (trang quản lý đơn). Quyền được kiểm tra
-     * lại ở server bằng OrderStatusService.canAccessOrder:
-     *   - ADMIN  xem mọi đơn.
-     *   - SELLER chỉ xem đơn của shop mình.
-     * Không trả dữ liệu (Optional.empty) khi không có quyền.
+     * Chi tiết đơn cho ADMIN/SELLER (trang quản lý đơn).
      */
     public Optional<Order> detailForManagement(SessionUser actor, int orderId) {
         try (Connection conn = DBConnection.getConnection()) {
@@ -333,8 +403,7 @@ public class OrderService {
     }
 
     /**
-     * Các đơn vừa tạo cho trang "đặt hàng thành công". Chỉ trả về đơn thuộc
-     * đúng user đang đăng nhập — id trên URL không đủ để xem đơn người khác.
+     * Các đơn vừa tạo cho trang "đặt hàng thành công".
      */
     public List<Order> successOrders(int userId, List<Integer> orderIds) {
         List<Order> result = new ArrayList<>();
@@ -384,7 +453,6 @@ public class OrderService {
         return byId;
     }
 
-    /** Rollback rồi trả outcome lỗi cho servlet (giữ nguyên giỏ hàng). */
     private static PlaceOutcome rollback(Connection conn, PlaceOutcome outcome) throws SQLException {
         conn.rollback();
         return outcome;

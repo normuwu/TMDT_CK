@@ -31,12 +31,14 @@ public final class Views {
     public static final String CART_URL = "/KhachHang/gio-hang";
     public static final String ADD_TO_CART_URL = "/KhachHang/them-vao-gio";
     public static final String CHECKOUT_URL = "/KhachHang/thanh-toan";
+    public static final String VNPAY_RETURN_URL = "/KhachHang/vnpay-return";
     public static final String ORDER_SUCCESS_URL = "/KhachHang/dat-hang-thanh-cong";
     public static final String ORDER_HISTORY_URL = "/KhachHang/lich-su-mua-hang";
     public static final String ORDER_DETAIL_URL = "/KhachHang/chi-tiet-don-hang";
     public static final String PROMOTION_URL = "/KhachHang/khuyen-mai";
     public static final String CANCEL_ORDER_URL = "/KhachHang/huy-don-hang";
     public static final String ADMIN_ORDER_LIST_URL = "/Admin/quan-ly-don-hang";
+
     // --- Browser-facing URLs (context path prepended by the caller) ---
     public static final String LOGIN_URL = "/login";
     public static final String REGISTER_URL = "/register";
@@ -48,7 +50,7 @@ public final class Views {
     //     when those screens are wired to real backend features). ---
     public static final String HOME_CUSTOMER = "/KhachHang/trang_chu.jsp";
     public static final String HOME_SELLER = "/NhaCungCap/dashBoard.jsp"; // TODO: confirm the seller dashboard target
-    public static final String HOME_ADMIN = "/Admin/dashBoard.jsp";       // TODO: confirm the admin dashboard target
+    public static final String HOME_ADMIN = "/Admin/admin.jsp";           // giao diện thống kê thật (mục #reports)
 
     /** Landing page after a successful login, by role. */
     public static String homeFor(Role role) {
