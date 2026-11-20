@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +132,51 @@ public class OrderStatusService {
             return orderDAO.findForManagement(shopOwner, statusFilter);
         } catch (SQLException e) {
             throw new IllegalStateException("Không tải được danh sách đơn hàng", e);
+        }
+    }
+
+    public record OrderPage(List<Order> orders, int total, int page, int size, int pages) {
+    }
+
+    public record OrderCounts(int total, int pending, int processing, int completed,
+                             int cancelled) {
+    }
+
+    /**
+     * Một trang đơn cho Admin/Seller kèm bộ lọc trạng thái + khoảng ngày tạo.
+     * Quyền được xác định từ SessionUser; Seller chỉ nhận đơn thuộc xưởng của mình.
+     */
+    public OrderPage pageForManagement(SessionUser actor, OrderStatus statusFilter,
+                                       LocalDate from, LocalDate to, int page, int size) {
+        if (!canManageOrders(actor)) {
+            throw new SecurityException("Không có quyền quản lý đơn hàng");
+        }
+        int safeSize = size < 1 || size > 100 ? 10 : size;
+        try {
+            Integer shopOwner = actor.getRole() == Role.SELLER ? actor.getUserId() : null;
+            int total = orderDAO.countForManagement(shopOwner, statusFilter, from, to);
+            int pages = total == 0 ? 0 : (total + safeSize - 1) / safeSize;
+            int safePage = Math.max(1, pages == 0 ? 1 : Math.min(page, pages));
+            List<Order> orders = orderDAO.findForManagement(shopOwner, statusFilter, from, to,
+                    (safePage - 1) * safeSize, safeSize);
+            return new OrderPage(orders, total, safePage, safeSize, pages);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không tải được danh sách đơn hàng", e);
+        }
+    }
+
+    /** Số đơn theo trạng thái của toàn bộ đơn mà actor được quản lý. */
+    public OrderCounts countsForManagement(SessionUser actor) {
+        if (!canManageOrders(actor)) {
+            throw new SecurityException("Không có quyền quản lý đơn hàng");
+        }
+        try {
+            Integer shopOwner = actor.getRole() == Role.SELLER ? actor.getUserId() : null;
+            OrderDAO.StatusCounts counts = orderDAO.statusCounts(shopOwner);
+            return new OrderCounts(counts.total(), counts.pending(), counts.processing(),
+                    counts.completed(), counts.cancelled());
+        } catch (SQLException e) {
+            throw new IllegalStateException("Không đếm được đơn hàng", e);
         }
     }
 

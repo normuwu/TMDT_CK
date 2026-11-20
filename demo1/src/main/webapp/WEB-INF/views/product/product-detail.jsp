@@ -21,6 +21,18 @@
     <link rel="stylesheet" href="${ctx}/assets/css/printkraft.css">
     <link rel="stylesheet" href="${ctx}/assets/css/product.css">
     <link rel="stylesheet" href="${ctx}/assets/css/product-detail.css">
+    <style>
+        /* Khối "Sản phẩm gợi ý cho bạn" */
+        .rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+        .rec-card{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line,#E7E4F2);
+            border-radius:14px;overflow:hidden;padding-bottom:10px;background:#fff;transition:.2s}
+        .rec-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(27,27,47,.10)}
+        .rec-thumb{aspect-ratio:3/2;background:linear-gradient(135deg,#6C5CE7,#A29BFE);display:flex;
+            align-items:center;justify-content:center;color:#fff;font-size:12px;overflow:hidden}
+        .rec-thumb img{width:100%;height:100%;object-fit:cover}
+        .rec-card strong{font-size:13px;padding:0 10px;line-height:1.35;color:var(--ink,#1B1B2F)}
+        .rec-price{font-size:13px;font-weight:700;color:#6C5CE7;padding:0 10px}
+    </style>
 </head>
 <body data-page="san-pham" data-search="san_pham.jsp">
 <jsp:include page="/WEB-INF/views/common/session-info.jsp" />
@@ -318,12 +330,45 @@
                 <c:otherwise><div class="no-review">Chưa có nhận xét nào về nhà cung cấp này.</div></c:otherwise>
             </c:choose>
         </section>
+
+        <%-- ================= GỢI Ý SẢN PHẨM (category affinity) ================= --%>
+    <c:if test="${not empty recommended}">
+        <section class="d-card" id="goi-y">
+            <h2>Sản phẩm gợi ý cho bạn</h2>
+            <div class="rec-grid">
+                <c:forEach var="r" items="${recommended}">
+                    <a class="rec-card" href="${ctx}/KhachHang/chi-tiet-san-pham?id=${r.productId}">
+                        <div class="rec-thumb">
+                            <c:choose>
+                                <c:when test="${empty r.thumbnailUrl}">
+                                    <span><c:out value="${r.categoryName}"/></span>
+                                </c:when>
+                                <c:when test="${fn:startsWith(r.thumbnailUrl, 'http')}">
+                                    <img src="<c:out value='${r.thumbnailUrl}'/>" alt="" loading="lazy" decoding="async">
+                                </c:when>
+                                <c:when test="${fn:startsWith(r.thumbnailUrl, '/')}">
+                                    <img src="${ctx}<c:out value='${r.thumbnailUrl}'/>" alt="" loading="lazy" decoding="async">
+                                </c:when>
+                                <c:otherwise>
+                                    <img src="${ctx}/<c:out value='${r.thumbnailUrl}'/>" alt="" loading="lazy" decoding="async">
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                        <strong><c:out value="${r.name}"/></strong>
+                        <span class="rec-price"><fmt:formatNumber value="${r.price}" groupingUsed="true"/>đ</span>
+                    </a>
+                </c:forEach>
+            </div>
+        </section>
+        </c:if>
     </div>
 </main>
 
 <div id="site-footer"></div>
 
+<jsp:include page="/WEB-INF/views/common/chatbot.jsp"/>
 <script src="${ctx}/assets/js/printkraft.js"></script>
+<script src="${ctx}/assets/js/cart-ajax.js"></script>
 <script src="${ctx}/assets/js/product-detail.js"></script>
 </body>
 </html>

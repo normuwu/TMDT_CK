@@ -69,12 +69,16 @@ public class OrderDetailServlet extends HttpServlet {
             return;
         }
 
+        // Người bán quay về đúng danh sách đơn của xưởng, không về khu vực Admin.
+        boolean seller = user.getRole() == Role.SELLER;
         request.setAttribute("order", order.get());
         request.setAttribute("isManager", manager);
         request.setAttribute("backUrl",
-                manager ? Views.ADMIN_ORDER_LIST_URL : Views.ORDER_HISTORY_URL);
+                seller ? SellerOrderServlet.BASE_URL
+                        : manager ? Views.ADMIN_ORDER_LIST_URL : Views.ORDER_HISTORY_URL);
         request.setAttribute("backLabel",
-                manager ? "Quản lý đơn hàng" : "Lịch sử mua hàng");
+                seller ? "Đơn hàng của xưởng"
+                        : manager ? "Quản lý đơn hàng" : "Lịch sử mua hàng");
         // Khách chỉ thấy nút hủy khi đúng chủ đơn và đơn còn ở bước cho phép hủy.
         request.setAttribute("canCancel",
                 !manager && OrderStatusService.canCustomerCancel(user, order.get()));

@@ -216,6 +216,96 @@ public class ProductDAO {
     }
 
     // ---------------------------------------------------------------------
+    // Gợi ý sản phẩm ("category affinity")
+    // ---------------------------------------------------------------------
+
+    /**
+     * Gợi ý theo hành vi của người dùng: đã mua +3 điểm/dòng, đã xem trong 30 ngày
+     * +1 điểm/dòng, cộng điểm bán chạy & rating để phá thế hoà. Loại sản phẩm đã mua
+     * và sản phẩm đang xem để không gợi ý lại thứ khách vừa xem/mua.
+     */
+    public List<Product> findRecommendedForUser(int userId, Integer excludeProductId, int limit)
+            throws SQLException {
+        StringBuilder sql = new StringBuilder(SELECT_COLUMNS)
+                .append("p.price AS display_price ")
+                .append("FROM products p ")
+                .append("JOIN supplier_profiles s ON s.supplier_id = p.supplier_id ")
+                .append("JOIN categories c ON c.category_id = p.category_id ")
+                .append("JOIN (")
+                .append("SELECT category_id, SUM(w) AS w FROM (")
+                .append("SELECT pr.category_id, 3 AS w ")
+                .append("FROM orders o ")
+                .append("JOIN order_items oi ON oi.order_id = o.order_id ")
+                .append("JOIN products pr ON pr.product_id = oi.product_id ")
+                .append("WHERE o.user_id = ? ")
+                .append("AND o.order_status IN ('CONFIRMED','SHIPPING','COMPLETED') ")
+                .append("UNION ALL ")
+                .append("SELECT pv2.category_id, 1 AS w ")
+                .append("FROM product_views pvw ")
+                .append("JOIN products pv2 ON pv2.product_id = pvw.product_id ")
+                .append("WHERE pvw.user_id = ? ")
+                .append("AND pvw.viewed_at >= NOW() - INTERVAL 30 DAY")
+                .append(") u GROUP BY category_id")
+                .append(") aff ON aff.category_id = p.category_id ")
+                .append("WHERE p.status = 'ACTIVE' AND s.status = 'ACTIVE' AND c.is_active = TRUE ")
+                .append("AND p.product_id NOT IN (")
+                .append("SELECT oi2.product_id FROM orders o2 ")
+                .append("JOIN order_items oi2 ON oi2.order_id = o2.order_id ")
+                .append("WHERE o2.user_id = ? ")
+                .append("AND o2.order_status IN ('CONFIRMED','SHIPPING','COMPLETED')) ");
+
+        if (excludeProductId != null) {
+            sql.append("AND p.product_id <> ? ");
+        }
+        sql.append("ORDER BY (aff.w * 10 + LEAST(p.sold_count, 500) * 0.05 ")
+                .append("+ COALESCE(p.avg_rating, 0) * 2) DESC, p.created_at DESC LIMIT ?");
+
+        List<Object> params = new ArrayList<>();
+        params.add(userId);                     // affinity: đơn đã mua
+        params.add(userId);                     // affinity: lượt xem
+        params.add(userId);                     // loại sản phẩm đã mua
+        if (excludeProductId != null) {
+            params.add(excludeProductId);       // loại sản phẩm đang xem
+        }
+        params.add(Math.min(Math.max(limit, 1), 24));
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            bind(ps, params);
+            List<Product> products = new ArrayList<>();
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(mapRow(rs));
+                }
+            }
+            loadMaterialNames(conn, products);
+            return products;
+        }
+    }
+
+    /** Cold start: người chưa đăng nhập hoặc chưa có hành vi -> sản phẩm bán chạy. */
+    public List<Product> findBestsellers(int limit) throws SQLException {
+        String sql = SELECT_COLUMNS + "p.price AS display_price "
+                + "FROM products p "
+                + "JOIN supplier_profiles s ON s.supplier_id = p.supplier_id "
+                + "JOIN categories c ON c.category_id = p.category_id "
+                + "WHERE p.status = 'ACTIVE' AND s.status = 'ACTIVE' AND c.is_active = TRUE "
+                + "ORDER BY p.sold_count DESC, p.avg_rating DESC, p.created_at DESC LIMIT ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, Math.min(Math.max(limit, 1), 24));
+            List<Product> products = new ArrayList<>();
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(mapRow(rs));
+                }
+            }
+            loadMaterialNames(conn, products);
+            return products;
+        }
+    }
+
+    // ---------------------------------------------------------------------
     // Giỏ hàng / đặt hàng
     // ---------------------------------------------------------------------
 
@@ -365,4 +455,30 @@ public class ProductDAO {
             }
         }
     }
+
+    public List<Product> getTopNewProducts(int limit) throws SQLException {
+        String sql = SELECT_COLUMNS + "p.price AS display_price "
+                + "FROM products p "
+                + "JOIN supplier_profiles s ON s.supplier_id = p.supplier_id "
+                + "JOIN categories c ON c.category_id = p.category_id "
+                + "WHERE p.status = 'ACTIVE' AND s.status = 'ACTIVE' AND c.is_active = TRUE "
+                + "ORDER BY p.created_at DESC, p.product_id DESC LIMIT ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, Math.max(limit, 1));
+            List<Product> products = new ArrayList<>();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    products.add(mapRow(rs));
+                }
+            }
+            // Gọi hàm có sẵn để map tên vật liệu vào sản phẩm
+            loadMaterialNames(conn, products);
+            return products;
+        }
+    }
+
 }

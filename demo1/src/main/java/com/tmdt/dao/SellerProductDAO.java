@@ -37,6 +37,9 @@ public class SellerProductDAO {
                           String updatedAt) {
     }
 
+    public record ProductStats(int total, int active, int hidden, int lowStock) {
+    }
+
     /** Hồ sơ xưởng đang hoạt động của tài khoản; empty nếu chưa được duyệt làm NCC. */
     public Optional<Shop> findShop(int userId) throws SQLException {
         final String sql = "SELECT supplier_id, shop_name FROM supplier_profiles "
@@ -67,29 +70,29 @@ public class SellerProductDAO {
         return list;
     }
 
-    /** Toàn bộ sản phẩm (ACTIVE + HIDDEN) của một xưởng, mới cập nhật trước. */
-    public List<Product> findBySupplier(int supplierId, String keyword) throws SQLException {
+    /**
+     * Một trang sản phẩm của xưởng (ACTIVE + HIDDEN), mới cập nhật trước.
+     *
+     * @param keyword tìm theo tên sản phẩm / danh mục (null hoặc rỗng = bỏ lọc)
+     * @param status  ACTIVE / HIDDEN (null hoặc rỗng = tất cả)
+     */
+    public List<Product> findPage(int supplierId, String keyword, String status,
+                                  int offset, int limit) throws SQLException {
         StringBuilder sql = new StringBuilder(
                 "SELECT p.product_id, p.category_id, c.name AS category_name, p.name, p.slug, "
                         + "p.short_description, p.thumbnail_url, p.price, p.stock_quantity, "
                         + "p.sold_count, p.status, p.updated_at "
                         + "FROM products p JOIN categories c ON c.category_id = p.category_id "
                         + "WHERE p.supplier_id = ?");
-        boolean hasKeyword = keyword != null && !keyword.isBlank();
-        if (hasKeyword) {
-            sql.append(" AND (p.name LIKE ? OR c.name LIKE ?)");
-        }
-        sql.append(" ORDER BY p.updated_at DESC, p.product_id DESC");
+        appendFilters(sql, keyword, status);
+        sql.append(" ORDER BY p.updated_at DESC, p.product_id DESC LIMIT ? OFFSET ?");
 
         List<Product> list = new ArrayList<>();
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
-            ps.setInt(1, supplierId);
-            if (hasKeyword) {
-                String like = "%" + escapeLike(keyword.trim()) + "%";
-                ps.setString(2, like);
-                ps.setString(3, like);
-            }
+            int index = bindFilters(ps, supplierId, keyword, status);
+            ps.setInt(index++, limit);
+            ps.setInt(index, offset);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(map(rs));
@@ -97,6 +100,42 @@ public class SellerProductDAO {
             }
         }
         return list;
+    }
+
+    /** Tổng số sản phẩm khớp bộ lọc (để tính số trang). */
+    public int count(int supplierId, String keyword, String status) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM products p "
+                        + "JOIN categories c ON c.category_id = p.category_id "
+                        + "WHERE p.supplier_id = ?");
+        appendFilters(sql, keyword, status);
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            bindFilters(ps, supplierId, keyword, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    /** Số liệu tổng quan của toàn bộ sản phẩm xưởng (không phụ thuộc bộ lọc). */
+    public ProductStats stats(int supplierId) throws SQLException {
+        final String sql = "SELECT COUNT(*) AS total, "
+                + "COALESCE(SUM(status = 'ACTIVE'), 0) AS active, "
+                + "COALESCE(SUM(status = 'HIDDEN'), 0) AS hidden, "
+                + "COALESCE(SUM(status = 'ACTIVE' AND stock_quantity <= 5), 0) AS low_stock "
+                + "FROM products WHERE supplier_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, supplierId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    return new ProductStats(0, 0, 0, 0);
+                }
+                return new ProductStats(rs.getInt("total"), rs.getInt("active"),
+                        rs.getInt("hidden"), rs.getInt("low_stock"));
+            }
+        }
     }
 
     /** Sản phẩm thuộc đúng xưởng (dùng để kiểm tra quyền trước khi sửa). */
@@ -228,6 +267,30 @@ public class SellerProductDAO {
                 rs.getInt("sold_count"),
                 rs.getString("status"),
                 updatedAt);
+    }
+
+    private static void appendFilters(StringBuilder sql, String keyword, String status) {
+        if (keyword != null && !keyword.isBlank()) {
+            sql.append(" AND (p.name LIKE ? OR c.name LIKE ?)");
+        }
+        if ("ACTIVE".equals(status) || "HIDDEN".equals(status)) {
+            sql.append(" AND p.status = ?");
+        }
+    }
+
+    private static int bindFilters(PreparedStatement ps, int supplierId, String keyword,
+                                   String status) throws SQLException {
+        int index = 1;
+        ps.setInt(index++, supplierId);
+        if (keyword != null && !keyword.isBlank()) {
+            String like = "%" + escapeLike(keyword.trim()) + "%";
+            ps.setString(index++, like);
+            ps.setString(index++, like);
+        }
+        if ("ACTIVE".equals(status) || "HIDDEN".equals(status)) {
+            ps.setString(index++, status);
+        }
+        return index;
     }
 
     private static void setNullable(PreparedStatement ps, int index, String value)

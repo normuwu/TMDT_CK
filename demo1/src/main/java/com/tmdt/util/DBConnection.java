@@ -41,6 +41,24 @@ public class DBConnection {
         config.setMaximumPoolSize(Integer.parseInt(props.getProperty("db.pool.maxSize", "10")));
         config.setMinimumIdle(Integer.parseInt(props.getProperty("db.pool.minIdle", "2")));
 
+        config.setPoolName("PrintKraftPool");
+        // Fail fast: chờ tối đa 3s rồi báo lỗi thay vì treo request 30s khi DB chết.
+        config.setConnectionTimeout(3_000);
+        config.setValidationTimeout(1_500);
+        config.setIdleTimeout(600_000);          // 10 phút
+        // Phải nhỏ hơn wait_timeout của MySQL (mặc định 8h), nếu không sẽ gặp
+        // "Communications link failure" khi MySQL đóng connection trước pool.
+        config.setMaxLifetime(1_800_000);        // 30 phút
+        // CHỈ dùng khi dev: connection giữ > 20s sẽ bị log kèm stack trace.
+        // Đặt về 0 khi chạy thật để tránh log giả khi tải cao.
+        config.setLeakDetectionThreshold(20_000);
+
+        // Tái sử dụng PreparedStatement ở tầng driver.
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty("rewriteBatchedStatements", "true");
+
         dataSource = new HikariDataSource(config);
     }
 

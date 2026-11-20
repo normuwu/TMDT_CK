@@ -22,7 +22,7 @@ import java.util.Optional;
  * khoản đang đăng nhập; shop_id/supplier_id luôn lấy từ session + DB, không đọc
  * từ request.
  *
- *   GET  /nhacungcap/api/products?q=
+ *   GET  /nhacungcap/api/products?q=&status=&page=&size=
  *   POST /nhacungcap/api/products  action=create|update|status
  *
  * Request POST dùng application/x-www-form-urlencoded (kèm CSRF do CsrfFilter
@@ -38,6 +38,8 @@ public class SellerProductApiServlet extends HttpServlet {
     private static final int URL_MAX = 500;
     private static final long PRICE_MAX = 999_999_999_999L;
     private static final int STOCK_MAX = 1_000_000;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int MAX_PAGE_SIZE = 50;
 
     private final SellerProductDAO dao = new SellerProductDAO();
 
@@ -49,8 +51,20 @@ public class SellerProductApiServlet extends HttpServlet {
             return;
         }
         try {
+            int supplierId = ctx.shop().supplierId();
+            String keyword = request.getParameter("q");
+            String status = parseStatusFilter(request.getParameter("status"));
+            int size = clampSize(request.getParameter("size"));
+
+            int total = dao.count(supplierId, keyword, status);
+            int pages = total == 0 ? 0 : (total + size - 1) / size;
+            int page = clampPage(request.getParameter("page"), pages);
+            int offset = (page - 1) * size;
+
             List<SellerProductDAO.Product> products =
-                    dao.findBySupplier(ctx.shop().supplierId(), request.getParameter("q"));
+                    dao.findPage(supplierId, keyword, status, offset, size);
+            SellerProductDAO.ProductStats stats = dao.stats(supplierId);
+
             JsonUtil.Arr items = new JsonUtil.Arr();
             for (SellerProductDAO.Product p : products) {
                 items.add(new JsonUtil.Obj()
@@ -79,11 +93,21 @@ public class SellerProductApiServlet extends HttpServlet {
 
             String body = new JsonUtil.Obj()
                     .put("shop", new JsonUtil.Obj()
-                            .putNumber("supplierId", ctx.shop().supplierId())
+                            .putNumber("supplierId", supplierId)
                             .putString("shopName", ctx.shop().shopName())
                             .end())
                     .put("categories", categories.end())
                     .put("products", items.end())
+                    .putNumber("page", page)
+                    .putNumber("size", size)
+                    .putNumber("pages", pages)
+                    .putNumber("total", total)
+                    .put("stats", new JsonUtil.Obj()
+                            .putNumber("total", stats.total())
+                            .putNumber("active", stats.active())
+                            .putNumber("hidden", stats.hidden())
+                            .putNumber("lowStock", stats.lowStock())
+                            .end())
                     .end();
             writeJson(response, HttpServletResponse.SC_OK, body);
         } catch (SQLException e) {
@@ -263,6 +287,33 @@ public class SellerProductApiServlet extends HttpServlet {
             throw new IllegalArgumentException(fieldName + " tối đa " + max + " ký tự.");
         }
         return value.isEmpty() ? null : value;
+    }
+
+    private static String parseStatusFilter(String raw) {
+        String status = trim(raw).toUpperCase();
+        return "ACTIVE".equals(status) || "HIDDEN".equals(status) ? status : null;
+    }
+
+    private static int clampSize(String raw) {
+        try {
+            int size = Integer.parseInt(trim(raw));
+            return size < 1 || size > MAX_PAGE_SIZE ? DEFAULT_PAGE_SIZE : size;
+        } catch (NumberFormatException e) {
+            return DEFAULT_PAGE_SIZE;
+        }
+    }
+
+    private static int clampPage(String raw, int pages) {
+        int page;
+        try {
+            page = Integer.parseInt(trim(raw));
+        } catch (NumberFormatException e) {
+            page = 1;
+        }
+        if (page < 1) {
+            page = 1;
+        }
+        return pages > 0 && page > pages ? pages : page;
     }
 
     private static int validProductId(String raw) {

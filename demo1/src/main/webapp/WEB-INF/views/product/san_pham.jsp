@@ -80,6 +80,7 @@
         .alert-error{background:#FFECEC;color:#C0392B;border-radius:var(--r-sm);padding:12px 16px;font-size:13.5px;font-weight:500;margin-bottom:18px}
 
         .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px}
+        .grid[aria-busy="true"]{opacity:.45;pointer-events:none;transition:.15s}
         .pcard{
             background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
             display:flex;flex-direction:column;box-shadow:var(--shadow-xs);transition:box-shadow .2s,transform .2s;
@@ -175,7 +176,7 @@
                 <form id="filterForm" method="get" action="${listUrl}">
                     <div class="f-field">
                         <label for="fCategory">Danh mục</label>
-                        <select id="fCategory" name="category" onchange="this.form.submit()">
+                        <select id="fCategory" name="category">
                             <option value="">Tất cả danh mục</option>
                             <c:forEach var="o" items="${categories}">
                                 <option value="${o.id}" ${filter.categoryId == o.id ? 'selected' : ''}><c:out value="${o.name}"/></option>
@@ -185,7 +186,7 @@
 
                     <div class="f-field">
                         <label for="fMaterial">Vật liệu</label>
-                        <select id="fMaterial" name="material" onchange="this.form.submit()">
+                        <select id="fMaterial" name="material">
                             <option value="">Tất cả vật liệu</option>
                             <c:forEach var="o" items="${materials}">
                                 <option value="${o.id}" ${filter.materialId == o.id ? 'selected' : ''}><c:out value="${o.name}"/></option>
@@ -195,7 +196,7 @@
 
                     <div class="f-field">
                         <label for="fSupplier">Xưởng in</label>
-                        <select id="fSupplier" name="supplier" onchange="this.form.submit()">
+                        <select id="fSupplier" name="supplier">
                             <option value="">Tất cả xưởng in</option>
                             <c:forEach var="o" items="${suppliers}">
                                 <option value="${o.id}" ${filter.supplierId == o.id ? 'selected' : ''}><c:out value="${o.name}"/></option>
@@ -234,7 +235,7 @@
                     </div>
                     <div class="sort-box">
                         <label for="fSort">Sắp xếp</label>
-                        <select id="fSort" name="sort" form="filterForm" onchange="this.form.submit()">
+                        <select id="fSort" name="sort" form="filterForm">
                             <c:forEach var="s" items="${sorts}">
                                 <option value="${s.code}" ${filter.sort == s ? 'selected' : ''}><c:out value="${s.label}"/></option>
                             </c:forEach>
@@ -265,13 +266,13 @@
                                                 <span><c:out value="${p.categoryName}"/></span>
                                             </c:when>
                                             <c:when test="${fn:startsWith(p.thumbnailUrl, 'http')}">
-                                                <img src="<c:out value='${p.thumbnailUrl}'/>" alt="" loading="lazy">
+                                                <img src="<c:out value='${p.thumbnailUrl}'/>" alt="" loading="lazy" width="480" height="360" decoding="async">
                                             </c:when>
                                             <c:when test="${fn:startsWith(p.thumbnailUrl, '/')}">
-                                                <img src="${ctx}<c:out value='${p.thumbnailUrl}'/>" alt="" loading="lazy">
+                                                <img src="${ctx}<c:out value='${p.thumbnailUrl}'/>" alt="" loading="lazy" width="480" height="360" decoding="async">
                                             </c:when>
                                             <c:otherwise>
-                                                <img src="${ctx}/<c:out value='${p.thumbnailUrl}'/>" alt="" loading="lazy">
+                                                <img src="${ctx}/<c:out value='${p.thumbnailUrl}'/>" alt="" loading="lazy" width="480" height="360" decoding="async">
                                             </c:otherwise>
                                         </c:choose>
                                     </a>
@@ -366,11 +367,13 @@
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
 
 <script src="${ctx}/assets/js/site.js"></script>
+<script src="${ctx}/assets/js/cart-ajax.js"></script>
+<script src="${ctx}/assets/js/shop-filter.js"></script>
 <script>
     /* Chống bấm đúp "Thêm vào giỏ": khóa nút sau lần bấm đầu, mở lại khi trang được khôi phục từ lịch sử */
     document.querySelectorAll('.add-form').forEach(function(f){
         f.addEventListener('submit',function(){
-            var b=f.querySelector('button');b.disabled=true;b.textContent='Đang thêm...';
+            var b=f.querySelector('button');if(b)b.disabled=true;
         });
     });
     window.addEventListener('pageshow',function(){

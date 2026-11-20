@@ -64,4 +64,8 @@ public class ProductService {
             throw new IllegalStateException("Không tải được nhà cung cấp", e);
         }
     }
+
+    public Object recommendationsFor(Integer userId, Integer id) {
+        return null;
+    }
 }

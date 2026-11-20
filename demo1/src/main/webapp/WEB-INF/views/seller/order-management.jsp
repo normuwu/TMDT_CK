@@ -19,11 +19,24 @@
         .status-form{display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
         .status-form select,
         .status-form input{border:1px solid var(--line); border-radius:7px; padding:6px 8px; font-size:12px; background:white; font-family:inherit;}
-        .status-form input{width:130px;}
+        .status-form input{width:110px;}
         .status-form select:focus,
         .status-form input:focus{outline:none; border-color:var(--cobalt);}
-        .table-wrap table{min-width:980px;}
+        .table-wrap table{min-width:900px;}
         .thanks-note{font-size:12px; color:var(--muted); font-style:italic;}
+        .pager{display:flex; justify-content:space-between; align-items:center; gap:12px;
+            padding:12px 20px; border-top:1px solid var(--line); flex-wrap:wrap;}
+        .pager .pager-info{font-size:11.5px; color:var(--muted);}
+        .pager .pager-btns{display:flex; gap:6px; align-items:center;}
+        .pager .pager-btns a, .pager .pager-btns span{
+            border:1px solid var(--line); border-radius:7px; padding:6px 10px;
+            font-size:12px; font-weight:500; background:white; color:var(--text);}
+        .pager .pager-btns span.current{background:var(--cobalt); border-color:var(--cobalt); color:white;}
+        .pager .pager-btns a:hover{border-color:var(--cobalt); color:var(--cobalt);}
+        .filter-range{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+        .filter-range input{border:1px solid var(--line); border-radius:7px; padding:7px 9px;
+            font-size:12.5px; font-family:inherit; background:white;}
+        .filter-range label{font-size:12px; color:var(--muted);}
     </style>
 </head>
 <body>
@@ -82,7 +95,7 @@
                     <div>
                         <div class="metric-title">Tổng đơn hàng</div>
                         <div class="metric-value num"><c:out value="${totalCount}"/></div>
-                        <div class="metric-note">Tất cả đơn của xưởng bạn</div>
+                        <div class="metric-note"><c:out value="${completedCount}"/> đã giao · <c:out value="${cancelledCount}"/> đã hủy</div>
                     </div>
                     <div class="metric-icon">📦</div>
                 </div>
@@ -98,7 +111,7 @@
                     <div>
                         <div class="metric-title">Đang xử lý / giao</div>
                         <div class="metric-value num"><c:out value="${activeCount}"/></div>
-                        <div class="metric-note">Đơn đã xác nhận hoặc đang giao</div>
+                        <div class="metric-note">Chờ xác nhận + đã xác nhận + đang giao</div>
                     </div>
                     <div class="metric-icon green">✓</div>
                 </div>
@@ -125,7 +138,14 @@
                             </option>
                         </c:forEach>
                     </select>
+                    <div class="filter-range">
+                        <label for="fromDate">Từ ngày</label>
+                        <input type="date" id="fromDate" name="from" value="<c:out value='${fromDate}'/>">
+                        <label for="toDate">Đến ngày</label>
+                        <input type="date" id="toDate" name="to" value="<c:out value='${toDate}'/>">
+                    </div>
                     <button type="submit" class="btn primary">Lọc</button>
+                    <a class="btn" href="${ctx}${baseUrl}">Bỏ lọc</a>
                 </form>
 
                 <c:choose>
@@ -197,6 +217,9 @@
                                                             <input type="hidden" name="action" value="update">
                                                             <input type="hidden" name="orderId" value="${o.orderId}">
                                                             <input type="hidden" name="filter" value="<c:out value='${selectedStatus}'/>">
+                                                            <input type="hidden" name="from" value="<c:out value='${fromDate}'/>">
+                                                            <input type="hidden" name="to" value="<c:out value='${toDate}'/>">
+                                                            <input type="hidden" name="page" value="${page}">
                                                             <select name="status" aria-label="Trạng thái mới cho đơn #<c:out value='${o.orderCode}'/>">
                                                                 <c:forEach items="${nextStatusMap[o.orderId]}" var="s">
                                                                     <option value="${s.code}"><c:out value="${s.label}"/></option>
@@ -214,9 +237,27 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="table-footer">
-                            <span><c:out value="${fn:length(orders)}"/> đơn hàng</span>
-                            <span>Mọi thay đổi trạng thái được ghi vào order_status_history.</span>
+                        <div class="pager">
+                            <span class="pager-info">
+                                Trang <c:out value="${page}"/><c:if test="${pages > 0}"> / <c:out value="${pages}"/></c:if>
+                                · <c:out value="${filteredCount}"/> đơn khớp bộ lọc
+                            </span>
+                            <div class="pager-btns">
+                                <c:choose>
+                                    <c:when test="${page > 1}">
+                                        <a href="${pagerBase}page=${page - 1}">← Trước</a>
+                                    </c:when>
+                                    <c:otherwise><span>← Trước</span></c:otherwise>
+                                </c:choose>
+                                <c:if test="${pages > 0}"><span class="current"><c:out value="${page}"/></span></c:if>
+                                <c:choose>
+                                    <c:when test="${pages > 0 and page < pages}">
+                                        <a href="${pagerBase}page=${page + 1}">Sau →</a>
+                                    </c:when>
+                                    <c:otherwise><span>Sau →</span></c:otherwise>
+                                </c:choose>
+                            </div>
+                            <span class="pager-info">Mọi thay đổi trạng thái được ghi vào order_status_history.</span>
                         </div>
                     </c:otherwise>
                 </c:choose>

@@ -2,6 +2,7 @@ package com.tmdt.servlet;
 
 import com.tmdt.dao.UserDAO;
 import com.tmdt.model.Cart;
+import com.tmdt.model.Order;
 import com.tmdt.model.PaymentMethod;
 import com.tmdt.model.SessionUser;
 import com.tmdt.model.User;
@@ -10,6 +11,7 @@ import com.tmdt.service.PromotionService;
 import com.tmdt.util.AuthUtil;
 import com.tmdt.util.FlashUtil;
 import com.tmdt.util.Views;
+import com.tmdt.util.VnPayConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,19 +28,10 @@ import java.util.Optional;
 
 /**
  * GET  /KhachHang/thanh-toan : form thông tin nhận hàng + đơn hàng
- * POST /KhachHang/thanh-toan : đặt hàng COD
- *
- * - Bắt buộc đăng nhập (orders.user_id FK users).
- * - Chuyển khoản ngân hàng: chưa hỗ trợ → quay lại form kèm thông báo,
- *   KHÔNG tạo đơn, KHÔNG đánh dấu thanh toán.
- * - Thành công: xóa giỏ + redirect sang trang thành công (PRG).
- * - Lỗi: rollback ở service, giữ nguyên giỏ, hiển thị lỗi ngay trên form.
+ * POST /KhachHang/thanh-toan : đặt hàng COD hoặc chuyển hướng thanh toán trực tuyến VNPay
  */
 @WebServlet(name = "CheckoutServlet", urlPatterns = Views.CHECKOUT_URL)
 public class CheckoutServlet extends HttpServlet {
-
-    private static final String MSG_BANK_COMING_SOON =
-            "Phương thức thanh toán này đang được phát triển. Vui lòng chọn thanh toán khi nhận hàng (COD).";
 
     private final OrderService orderService = new OrderService();
     private final UserDAO userDAO = new UserDAO();
@@ -87,11 +80,6 @@ public class CheckoutServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + Views.CHECKOUT_URL);
             return;
         }
-        if (method == PaymentMethod.BANK_TRANSFER) {
-            FlashUtil.flashError(session, MSG_BANK_COMING_SOON);
-            response.sendRedirect(request.getContextPath() + Views.CHECKOUT_URL);
-            return;
-        }
 
         SessionUser user = AuthUtil.currentUser(request);
 
@@ -108,17 +96,36 @@ public class CheckoutServlet extends HttpServlet {
         // Mã khuyến mãi lấy từ SESSION (nguồn server), không nhận số tiền giảm từ trình duyệt.
         String promotionCode = (String) session.getAttribute(PromotionService.SESSION_KEY);
 
-        OrderService.PlaceOutcome outcome = orderService.placeCodOrder(
-                user.getUserId(), cart, fullName, phone, address, note, promotionCode);
+        OrderService.PlaceOutcome outcome = orderService.placeOrder(
+                user.getUserId(), cart, fullName, phone, address, note, promotionCode, method);
 
         if (outcome.success()) {
             List<String> ids = new ArrayList<>();
-            for (var order : outcome.orders()) {
+            List<String> codes = new ArrayList<>();
+            BigDecimal totalPayable = BigDecimal.ZERO;
+
+            for (Order order : outcome.orders()) {
                 ids.add(String.valueOf(order.getOrderId()));
+                codes.add(order.getOrderCode());
+                if (order.getTotalAmount() != null) {
+                    totalPayable = totalPayable.add(order.getTotalAmount());
+                }
             }
-            // Chỉ xóa giỏ + mã sau khi transaction đã commit thành công.
+
+            // Xóa giỏ + mã sau khi transaction tạo đơn đã commit thành công.
             session.removeAttribute("cart");
             session.removeAttribute(PromotionService.SESSION_KEY);
+
+            // Nếu chọn thanh toán trực tuyến (BANK_TRANSFER -> VNPay) và số tiền > 0
+            if (method == PaymentMethod.BANK_TRANSFER && totalPayable.signum() > 0) {
+                String txnRef = String.join("-", ids) + "_" + System.currentTimeMillis();
+                String orderInfo = "Thanh toan don hang PrintKraft " + String.join(" ", codes);
+                String vnpayUrl = VnPayConfig.buildPaymentUrl(
+                        request, txnRef, totalPayable.longValue(), orderInfo);
+                response.sendRedirect(vnpayUrl);
+                return;
+            }
+
             response.sendRedirect(request.getContextPath() + Views.ORDER_SUCCESS_URL
                     + "?ids=" + String.join(",", ids));
             return;
@@ -143,7 +150,6 @@ public class CheckoutServlet extends HttpServlet {
         return session == null ? null : (Cart) session.getAttribute("cart");
     }
 
-    /** Tự điền họ tên / điện thoại / địa chỉ mặc định của tài khoản (vẫn sửa được). */
     private void prefillFromProfile(HttpServletRequest request, int userId) {
         try {
             Optional<User> user = userDAO.findById(userId);
@@ -157,11 +163,6 @@ public class CheckoutServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Dữ liệu cho form + tóm tắt tiền.
-     * Mã trong session được KIỂM TRA LẠI mỗi lần hiển thị; nếu không còn hợp lệ
-     * (hết hạn, hết lượt, giỏ đổi...) thì bỏ và nêu lý do.
-     */
     private void prepareForm(HttpServletRequest request, HttpSession session, Cart cart) {
         request.setAttribute("cart", cart);
         request.setAttribute("paymentMethods", PaymentMethod.values());

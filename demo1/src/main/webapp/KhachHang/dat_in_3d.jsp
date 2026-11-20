@@ -363,6 +363,7 @@
 <!-- Thẻ toast do printkraft.js tự sinh, không khai báo thêm ở đây -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<jsp:include page="/WEB-INF/views/common/chatbot.jsp"/>
 <script src="<%= request.getContextPath() %>/assets/js/printkraft.js"></script>
 <script src="<%= request.getContextPath() %>/assets/js/dat-in-3d.js"></script>
 </body>

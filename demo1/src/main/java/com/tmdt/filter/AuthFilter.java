@@ -77,6 +77,13 @@ public class AuthFilter implements Filter {
         tryAutoLogin(request, response);
 
         String path = pathOf(request);
+        if (isStaticAsset(path)) {
+            // CSS/JS/ảnh dùng chung (Admin/admin.css, Admin/admin-stats.js...) không
+            // phải trang quản trị: nếu chặn, các trang sẽ tải về 403/302 và mất
+            // toàn bộ giao diện.
+            chain.doFilter(req, res);
+            return;
+        }
         PathRule rule = ruleFor(path);
         if (rule != null) {
             boolean api = isJsonApi(path);
@@ -189,8 +196,20 @@ public class AuthFilter implements Filter {
         return null;
     }
 
+    /** Tài nguyên tĩnh: không áp quy tắc đăng nhập/vai trò. */
+    private static boolean isStaticAsset(String path) {
+        String lower = path.toLowerCase(Locale.ROOT);
+        return lower.endsWith(".css") || lower.endsWith(".js") || lower.endsWith(".map")
+                || lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")
+                || lower.endsWith(".gif") || lower.endsWith(".webp") || lower.endsWith(".svg")
+                || lower.endsWith(".ico") || lower.endsWith(".woff") || lower.endsWith(".woff2")
+                || lower.endsWith(".ttf") || lower.endsWith(".eot");
+    }
+
+    /** API JSON (fetch) phải nhận JSON khi bị chặn, không phải trang HTML đăng nhập. */
     private static boolean isJsonApi(String path) {
-        return path.toLowerCase(Locale.ROOT).startsWith("/admin/api/");
+        String lower = path.toLowerCase(Locale.ROOT);
+        return lower.startsWith("/admin/api/") || lower.startsWith("/nhacungcap/api/");
     }
 
     private static String pathOf(HttpServletRequest request) {
