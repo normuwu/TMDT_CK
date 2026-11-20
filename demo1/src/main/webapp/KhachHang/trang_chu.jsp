@@ -32,8 +32,7 @@
                     : ctx + (thumb.startsWith("/") ? "" : "/") + thumb;
             img = "<img src=\"" + esc(src) + "\" alt=\"" + esc(p.getName()) + "\" loading=\"lazy\">";
         }
-        // TODO: đổi đường dẫn trang chi tiết cho đúng với project của bạn.
-        String href = ctx + "/chi-tiet-san-pham?id=" + p.getProductId();
+        String href = ctx + "/KhachHang/chi-tiet-san-pham?id=" + p.getProductId();
 
         StringBuilder sb = new StringBuilder();
         sb.append("<a class=\"prod-card\" href=\"").append(href).append("\">");
